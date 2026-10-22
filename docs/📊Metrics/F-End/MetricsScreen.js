@@ -347,7 +347,11 @@
   // #    as a thing that broke, not a month not yet lived
   // ============================================================
   function render(year, month, host) {
-    const days = B.read().days;
+    // The same read-only rule the board draws by: a blank square on a
+    // day already past is counted as not done. The numbers have to be
+    // measured off exactly what the reader is looking at, or he reads
+    // a red month and is told it scored well
+    const days = B.ripen(B.read().days);
     const r = M.forMonth(year, month, days);
     const before = month === 1 ? null : M.forMonth(year, month - 1, days);
     const prev = before && before.written ? before : null;
