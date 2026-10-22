@@ -67,14 +67,14 @@
   // #    voluntary -- because a sorter that quietly drops a line
   // #    gives an answer that is wrong and looks fine
   // ============================================================
-  const BY_NAME = { duty: 'الأمر والنهي', drown: 'عدم الغرق بالسوشال ويوتيوب' };
+  const BY_NAME = { duty: 'الأمر والنهي', drown: 'لاغرق سوشال' };
 
   // The band is matched by NAME, so the name lives in one place: it
   // is printed on the board as a column head AND it is what sorts
   // those two lines into the avoidance kind. Changed in one and not
   // the other, the head would read right while the measure quietly
   // counted them as voluntary acts
-  const AVOID_BAND = 'اجتناب النواهي';
+  const AVOID_BAND = 'النواهي';
 
   const computeKinds = () => {
     const fard = [], avoid = [], nafl = [], body = [], study = [], orphan = [];

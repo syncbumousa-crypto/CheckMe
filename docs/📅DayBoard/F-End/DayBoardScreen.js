@@ -163,7 +163,7 @@
   // A column must carry whichever name is tightest over it: its
   // group's, spread over all that group's columns, or its BAND's,
   // spread over the band's few. The band used to be left out, and
-  // the day `وغيرها` was renamed `اجتناب النواهي` the head quietly
+  // the day `وغيرها` was renamed the head quietly
   // started printing `اجتناب ...` over two columns that had been
   // sized for the shorter word
   const colWidths = () => {

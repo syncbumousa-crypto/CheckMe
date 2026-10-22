@@ -267,7 +267,7 @@
     if (id === 'love') {
       return '<p class="xform">٥٠٪ واجبات + ٢٥٪ نواهٍ + ٢٥٪ نوافل</p>' +
         xpart('الواجبات', '٥٠٪', p.fard.ratio, `${p.fard.done}/${p.fard.answered}`) +
-        xpart('اجتناب النواهي', '٢٥٪', p.avoid.ratio, `${p.avoid.done}/${p.avoid.answered}`) +
+        xpart('النواهي', '٢٥٪', p.avoid.ratio, `${p.avoid.done}/${p.avoid.answered}`) +
         xpart('النوافل', '٢٥٪', p.nafl.ratio, `${p.nafl.done}/${p.nafl.answered}`);
     }
 
