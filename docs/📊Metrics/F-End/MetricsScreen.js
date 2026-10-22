@@ -1,18 +1,16 @@
 // ============================================================
-// # 📊 🖥️  THE FIVE MEASURES, EACH IN ITS OWN SHAPE
+// # 📊 📈  FIVE CURVES, ONE SHAPE, ONE SCREEN
 // # 🔤 JavaScript
-// # 🎯 Builds the month screen: five cards on one screenful, and no
-//  #   two of them drawn alike
-// # 🔗 Every number comes from the engine; this file only chooses the
-// #    SHAPE. And the five shapes are deliberately different from
-// #    one another, because five identical charts in a row are read
-// #    as one chart repeated and the reader stops looking. Each form
-// #    was picked to BE the idea it carries: nested rings for three
-// #    duties inside one devotion, four standing columns for four
-// #    separate habits, an arc between two marks for a thing derived
-// #    from two others, a row of days for a streak, and a month
-// #    drawn as a closed circle for holding the line.
-// #    The reasons behind the numbers are in `MonthMetricsRoadmap.md`
+// # 🎯 Draws each of the five measures as a curve that rises and
+// #    falls across the month, under one big figure
+// # 🔗 One form for all five now, not five different ones. The five
+// #    shapes before said `these are five unrelated things`, and
+// #    they are not -- they are five readings of one month, and the
+// #    only question worth asking of each is the same one: is it
+// #    going up or down. One form is what lets the eye ask that of
+// #    all five in a single pass. The numbers come from the engine;
+// #    this file only draws them, and the rules behind them are in
+// #    `MonthMetricsRoadmap.md`
 // ============================================================
 (() => {
   const M = window.CheckMeMetrics;
@@ -28,24 +26,152 @@
     study: '#c98500', grit: '#d55181'
   };
 
-  // Three steps of ONE hue for the three parts of devotion, not three
-  // different hues. They are parts of a single measure, so they are
-  // shades of a single colour -- three unrelated colours would say
-  // they were three unrelated things
-  const LOVE_STEPS = ['#3987e5', '#5598e7', '#86b6ef'];
-
   const pct = v => (v === null || v === undefined ? null : Math.round(v * 100));
   const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
   const daysIn = (y, m) => new Date(Date.UTC(y, m, 0)).getUTCDate();
 
   // ============================================================
-  // # 💬 🫧  ONE FLOATING LABEL FOR THE WHOLE SCREEN
+  // # 🪟 7️⃣  A WINDOW OF SEVEN DAYS, FOR ALL FIVE ALIKE
   // # 🔤 JavaScript
-  // # 🎯 Shows what a mark is when the pointer is on it
-  // # 🔗 It is what pays for the silence everywhere else. Nothing on
-  // #    these cards is captioned any more -- not the rings, not the
-  // #    columns, not the days -- and every one of those names is
-  // #    still here, one hover away and nought pixels tall
+  // # 🎯 Turns a day by day series into the share over the last
+  // #    seven days ending on each day
+  // # 🔗 Two of the five -- the study hour and the committed day --
+  // #    are a yes or no each day, and a line through a yes or no
+  // #    is a row of flagpoles, not a curve: it cannot rise or fall
+  // #    because there is nothing between nought and one to be at.
+  // #    A trailing week gives them a real slope, and it is the
+  // #    honest reading of a habit anyway -- nobody judges a month
+  // #    by a Tuesday. It is applied to ALL five and not only the
+  // #    two that need it, because five cards measured in two
+  // #    different ways cannot be compared by looking, which is the
+  // #    one thing putting them side by side is for
+  // ============================================================
+  const WINDOW = 7;
+
+  function trailing(daily, n) {
+    const by = {};
+    daily.forEach(d => { if (d.value !== null && d.value !== undefined) by[d.day] = d.value; });
+
+    const out = [];
+    for (let day = 1; day <= n; day++) {
+      let sum = 0, count = 0;
+      for (let k = day - WINDOW + 1; k <= day; k++) {
+        if (by[k] === undefined) continue;
+        sum += by[k]; count++;
+      }
+      out.push({ day, value: count ? sum / count : null, seen: count });
+    }
+    return out;
+  }
+
+  // ============================================================
+  // # 〰️ 📐  A CURVE THAT NEVER OVERSHOOTS
+  // # 🔤 JavaScript
+  // # 🎯 Turns a run of points into a smooth cubic path
+  // # 🔗 Monotone cubic and not a plain spline. A plain smoothing
+  // #    curve bulges past the points it joins, and on a scale that
+  // #    stops at nought and one that bulge draws a day at a
+  // #    hundred and six per cent, or below nothing at all -- a
+  // #    chart telling a lie that is nobody's data. This method
+  // #    flattens its own slope wherever the direction changes, so
+  // #    the line only ever goes where the figures went
+  // ============================================================
+  function smooth(pts) {
+    if (pts.length < 2) return pts.length ? `M${pts[0].x} ${pts[0].y}` : '';
+
+    const n = pts.length;
+    const dx = [], dy = [], slope = [];
+    for (let i = 0; i < n - 1; i++) {
+      dx.push(pts[i + 1].x - pts[i].x);
+      dy.push(pts[i + 1].y - pts[i].y);
+      slope.push(dy[i] / dx[i]);
+    }
+
+    const m = [slope[0]];
+    for (let i = 1; i < n - 1; i++) {
+      if (slope[i - 1] * slope[i] <= 0) { m.push(0); continue; }   // a turn: flatten
+      const w1 = 2 * dx[i] + dx[i - 1], w2 = dx[i] + 2 * dx[i - 1];
+      m.push((w1 + w2) / (w1 / slope[i - 1] + w2 / slope[i]));
+    }
+    m.push(slope[n - 2]);
+
+    let d = `M${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)}`;
+    for (let i = 0; i < n - 1; i++) {
+      const h = dx[i] / 3;
+      d += ` C${(pts[i].x + h).toFixed(1)} ${(pts[i].y + m[i] * h).toFixed(1)}` +
+        ` ${(pts[i + 1].x - h).toFixed(1)} ${(pts[i + 1].y - m[i + 1] * h).toFixed(1)}` +
+        ` ${pts[i + 1].x.toFixed(1)} ${pts[i + 1].y.toFixed(1)}`;
+    }
+    return d;
+  }
+
+  // ============================================================
+  // # 🖌️ 🌈  THE CHART ITSELF
+  // # 🔤 JavaScript
+  // # 🎯 One curve, a wash of colour fading away beneath it, and
+  // #    the two end days in the smallest type on the page
+  // # 🔗 No axis, no grid, no scale down the side. The figure above
+  // #    the chart already says where the month stands, so a column
+  // #    of percentages beside the line would only repeat it in
+  // #    smaller letters. The wash is what gives a thin line weight
+  // #    without thickening it. And the scale is pinned to nought
+  // #    and one always -- a chart stretched to its own contents
+  // #    draws a flat bad month as a dramatic one
+  // ============================================================
+  const W = 300, H = 112, PAD_T = 10, PAD_B = 16, PAD_X = 6;
+
+  // The axis runs between the FIRST and LAST day that have a figure,
+  // not from the first of the month to the last. March began being
+  // written on the sixteenth, and spanning the whole month drew every
+  // curve crushed into the left half of its card with an empty right
+  // half beside it -- which reads as a chart that failed to load
+  // rather than as a fortnight that was never lived. All five cards
+  // on a screen share one month and so share one span, which is what
+  // the comparison between them rests on
+  const span = series => {
+    const live = series.filter(p => p.value !== null);
+    return live.length ? { from: live[0].day, to: live[live.length - 1].day } : null;
+  };
+
+  const geo = sp => ({
+    x: day => (W - PAD_X) - ((day - sp.from) / Math.max(1, sp.to - sp.from)) * (W - 2 * PAD_X),
+    y: v => PAD_T + (1 - v) * (H - PAD_T - PAD_B)
+  });
+
+  function chart(id, series, sp, color) {
+    const g = geo(sp);
+    const pts = series.filter(p => p.value !== null).map(p => ({ x: g.x(p.day), y: g.y(p.value), day: p.day }));
+    if (!pts.length) return `<svg viewBox="0 0 ${W} ${H}" class="curve" role="img"></svg>`;
+
+    const line = smooth(pts);
+    const floor = H - PAD_B;
+    const area = `${line} L${pts[pts.length - 1].x.toFixed(1)} ${floor} L${pts[0].x.toFixed(1)} ${floor} Z`;
+
+    return `<svg viewBox="0 0 ${W} ${H}" class="curve" role="img">` +
+      `<defs><linearGradient id="g-${id}" x1="0" y1="0" x2="0" y2="1">` +
+      `<stop offset="0" stop-color="${color}" stop-opacity="0.38"/>` +
+      `<stop offset="1" stop-color="${color}" stop-opacity="0"/>` +
+      '</linearGradient></defs>' +
+      `<path class="curve-area" d="${area}" fill="url(#g-${id})"/>` +
+      `<path class="curve-line" d="${line}" stroke="${color}"/>` +
+      `<text class="edge" x="${g.x(sp.from).toFixed(1)}" y="${H - 3}" text-anchor="end">${sp.from}</text>` +
+      `<text class="edge" x="${g.x(sp.to).toFixed(1)}" y="${H - 3}" text-anchor="start">${sp.to}</text>` +
+      `<line class="hair" x1="0" x2="0" y1="${PAD_T}" y2="${floor}" style="opacity:0"/>` +
+      `<circle class="hair-dot" r="4" cx="0" cy="0" fill="${color}" style="opacity:0"/>` +
+      `<rect class="hit" x="${PAD_X}" y="${PAD_T}" width="${W - 2 * PAD_X}" height="${floor - PAD_T}" fill="transparent"/>` +
+      '</svg>';
+  }
+
+  // ============================================================
+  // # 🖱️ 💬  THE HAIRLINE AND ITS LABEL
+  // # 🔤 JavaScript
+  // # 🎯 A thin upright and a dot that follow the pointer along the
+  // #    curve, with the day and its figure floating beside them
+  // # 🔗 This is where every word taken off the card went. The hit
+  // #    area is the whole plot, not the two pixel line: a target
+  // #    the width of a stroke is a target nobody hits. The pointer
+  // #    is put back through the same transform the browser drew
+  // #    with, or the letterboxing offsets it by a day or two
   // ============================================================
   const tip = (() => {
     let el = null;
@@ -61,296 +187,70 @@
     };
   })();
 
-  function wireTips(host) {
-    host.querySelectorAll('[data-tip]').forEach(el => {
-      el.addEventListener('mouseenter', ev => tip.show(el.dataset.tip, ev));
-      el.addEventListener('mousemove', ev => tip.show(el.dataset.tip, ev));
-      el.addEventListener('mouseleave', () => tip.hide());
+  function wire(svg, series, sp, label) {
+    if (!svg) return;
+    const g = geo(sp);
+    const hair = svg.querySelector('.hair'), dot = svg.querySelector('.hair-dot'), hit = svg.querySelector('.hit');
+    if (!hit) return;
+
+    hit.addEventListener('mousemove', ev => {
+      const box = svg.getBoundingClientRect();
+      const scale = Math.min(box.width / W, box.height / H);
+      const sx = (ev.clientX - box.left - (box.width - W * scale) / 2) / scale;
+      let near = null, best = 1e9;
+      series.forEach(p => {
+        if (p.value === null) return;
+        const d = Math.abs(g.x(p.day) - sx);
+        if (d < best) { best = d; near = p; }
+      });
+      if (!near) return;
+      hair.setAttribute('x1', g.x(near.day)); hair.setAttribute('x2', g.x(near.day));
+      hair.style.opacity = 1;
+      dot.setAttribute('cx', g.x(near.day)); dot.setAttribute('cy', g.y(near.value));
+      dot.style.opacity = 1;
+      tip.show(`${label} · يوم ${near.day} — ${pct(near.value)}٪ <span class="dim">(آخر ${Math.min(WINDOW, near.seen)} أيام)</span>`, ev);
+    });
+
+    hit.addEventListener('mouseleave', () => {
+      hair.style.opacity = 0; dot.style.opacity = 0; tip.hide();
     });
   }
 
   // ============================================================
-  // # ⭕ 🔵  RINGS
+  // # 🃏 🔢  THE CARD: A NAME, A FIGURE, A CURVE
   // # 🔤 JavaScript
-  // # 🎯 Draws any number of parts as rings inside one another, each
-  // #    opening from the top and running clockwise
-  // # 🔗 A ring is a meter bent into a circle: one ratio against one
-  // #    limit, which is exactly what each part is. It is not a pie
-  // #    and never a slice of one -- nothing here is a share of a
-  // #    whole. The gap left in the track is the part not done, and
-  // #    a reader takes in three of them at once in a way three bars
-  // #    stacked down a card never allow
+  // # 🎯 Three things and no fourth
+  // # 🔗 The figure is the month as a whole and the curve is the
+  // #    last seven days at each point, so they answer two
+  // #    different questions on purpose: where the month stands,
+  // #    and which way it is moving
   // ============================================================
-  const RING = 120;
-
-  function rings(parts) {
-    const cx = RING / 2, stroke = 13, gap = 4;
-    let out = `<svg viewBox="0 0 ${RING} ${RING}" class="rings" role="img">`;
-    parts.forEach((p, k) => {
-      const r = cx - stroke / 2 - k * (stroke + gap);
-      const c = 2 * Math.PI * r;
-      const v = p.value === null || p.value === undefined ? 0 : Math.min(1, p.value);
-      out += `<g data-tip="${esc(p.tip)}">` +
-        `<circle class="ring-track" cx="${cx}" cy="${cx}" r="${r.toFixed(1)}" stroke-width="${stroke}"/>` +
-        `<circle class="ring-fill" cx="${cx}" cy="${cx}" r="${r.toFixed(1)}" stroke-width="${stroke}"` +
-        ` stroke="${p.color}" stroke-dasharray="${c.toFixed(1)}"` +
-        ` stroke-dashoffset="${(c * (1 - v)).toFixed(1)}"/>` +
-        `<circle class="ring-hit" cx="${cx}" cy="${cx}" r="${r.toFixed(1)}" stroke-width="${stroke + gap}"/>` +
-        '</g>';
-    });
-    return out + '</svg>';
-  }
-
-  // ============================================================
-  // # 🎚️ 📶  FOUR COLUMNS STANDING SIDE BY SIDE
-  // # 🔤 JavaScript
-  // # 🎯 One upright capsule per habit, filled from the floor
-  // # 🔗 Four separate things, so four separate uprights -- and
-  // #    height against a common floor is the one encoding a reader
-  // #    compares without thinking. Rings would have said these four
-  // #    were parts of one thing, which they are not: sleeping well
-  // #    is not a quarter of anything
-  // ============================================================
-  function columns(items) {
-    const w = 132, top = 98, bw = 18, gapW = (w - items.length * bw) / (items.length - 1 || 1);
-    const h = top + 14;                       // room under the floor for one word
-    let out = `<svg viewBox="0 0 ${w} ${h}" class="cols" role="img">`;
-    items.forEach((it, k) => {
-      const x = w - bw - k * (bw + gapW);
-      const v = it.value === null || it.value === undefined ? 0 : Math.min(1, it.value);
-      const fh = Math.max(v > 0 ? bw : 0, v * top);
-      out += `<g data-tip="${esc(it.tip)}">` +
-        `<rect class="col-track" x="${x.toFixed(1)}" y="0" width="${bw}" height="${top}" rx="${bw / 2}"/>` +
-        `<rect class="col-fill" x="${x.toFixed(1)}" y="${(top - fh).toFixed(1)}" width="${bw}"` +
-        ` height="${fh.toFixed(1)}" rx="${bw / 2}"/>` +
-        // One word under each. Four unlabelled columns is a guessing
-        // game, and three of the four rings on the devotion card are
-        // learnable in a way four habits are not
-        `<text class="col-name" x="${(x + bw / 2).toFixed(1)}" y="${h - 2}" text-anchor="middle">${esc(it.short)}</text>` +
-        '</g>';
-    });
-    return out + '</svg>';
-  }
-
-  // ============================================================
-  // # 🌗 📐  AN ARC BETWEEN THE TWO IT CAME FROM
-  // # 🔤 JavaScript
-  // # 🎯 A three quarter arc filled to the value, with a notch on it
-  // #    for each of the two measures it is made of
-  // # 🔗 The only card whose number is not its own. Instead of
-  // #    redrawing its two parents beside it -- they are cards of
-  // #    their own an inch away -- it marks where each of them falls
-  // #    on the same arc, so the reader sees the middle it was
-  // #    pulled to and which end pulled hardest, in two small ticks
-  // #    and no words at all
-  // ============================================================
-  function arc(value, marks, color) {
-    const s = 120, cx = s / 2, r = 46, stroke = 13;
-    const SPAN = 270, START = 135;                       // opens at the bottom
-    const pos = t => {
-      const a = (START + SPAN * t) * Math.PI / 180;
-      return [cx + r * Math.cos(a), cx + r * Math.sin(a)];
-    };
-    const sweep = t => {
-      const [x0, y0] = pos(0), [x1, y1] = pos(t);
-      return `M${x0.toFixed(1)} ${y0.toFixed(1)} A${r} ${r} 0 ${SPAN * t > 180 ? 1 : 0} 1 ${x1.toFixed(1)} ${y1.toFixed(1)}`;
-    };
-    const v = value === null || value === undefined ? 0 : Math.min(1, value);
-
-    let out = `<svg viewBox="0 0 ${s} ${s}" class="arc" role="img">` +
-      `<path class="arc-track" d="${sweep(1)}" stroke-width="${stroke}"/>` +
-      (v > 0 ? `<path class="arc-fill" d="${sweep(v)}" stroke-width="${stroke}" stroke="${color}"/>` : '');
-
-    marks.forEach(mk => {
-      if (mk.value === null || mk.value === undefined) return;
-      const [x, y] = pos(Math.min(1, mk.value));
-      out += `<g data-tip="${esc(mk.tip)}"><circle class="arc-mark" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4"/>` +
-        `<circle class="ring-hit" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="9" stroke-width="0" fill="transparent"/></g>`;
-    });
-    return out + '</svg>';
-  }
-
-  // ============================================================
-  // # ⚫ 🔗  A ROW OF DAYS, AND THE RUN JOINED UP
-  // # 🔤 JavaScript
-  // # 🎯 One dot per day, solid when kept, and the longest unbroken
-  // #    run drawn as a bar behind its dots
-  // # 🔗 The joined run is the whole point of this card. Springiness
-  // #    is not how many dots are filled, it is whether they come
-  // #    back together after a gap -- and a bar under the longest
-  // #    stretch makes that one thing visible before any number is
-  // #    read. Day one on the right, like every other chart here
-  // ============================================================
-  function dots(series, n, longest) {
-    const w = 320, h = 26, step = w / n, r = Math.min(4.5, step / 2 - 1.2);
-    const x = d => w - step / 2 - (d - 1) * step;
-
-    // Find where the longest run sits, so it can be underlined
-    let best = { start: 0, len: 0 }, run = 0, runStart = 0;
-    for (let d = 1; d <= n; d++) {
-      const hit = series.find(p => p.day === d);
-      const on = hit && hit.value === 1;
-      if (on) { if (!run) runStart = d; run++; if (run > best.len) best = { start: runStart, len: run }; }
-      else run = 0;
-    }
-
-    let out = `<svg viewBox="0 0 ${w} ${h}" class="dots" role="img">`;
-    if (best.len > 1) {
-      const x1 = x(best.start + best.len - 1), x2 = x(best.start);
-      out += `<rect class="dot-run" x="${(x1 - r).toFixed(1)}" y="${(h / 2 - r - 2).toFixed(1)}"` +
-        ` width="${(x2 - x1 + 2 * r).toFixed(1)}" height="${(2 * r + 4).toFixed(1)}" rx="${r + 2}"/>`;
-    }
-    for (let d = 1; d <= n; d++) {
-      const hit = series.find(p => p.day === d);
-      const v = hit ? hit.value : null;
-      const cls = v === null || v === undefined ? 'dot-none' : v ? 'dot-on' : 'dot-off';
-      out += `<circle class="${cls}" cx="${x(d).toFixed(1)}" cy="${h / 2}" r="${r.toFixed(1)}"` +
-        ` data-tip="${d} — ${v === null || v === undefined ? 'لم يُسجَّل' : v ? 'ذاكر' : 'لم يذاكر'}"/>`;
-    }
-    return out + `</svg>` + (longest > 1 ? '' : '');
-  }
-
-  // ============================================================
-  // # 🔘 🗓️  THE MONTH AS A CLOSED CIRCLE
-  // # 🔤 JavaScript
-  // # 🎯 One notch per day around a ring, lit on a day that held
-  // # 🔗 Holding the line is a thing you either close or leave open,
-  // #    and a circle is the only shape that says so: a row of cells
-  // #    has no end to reach, a ring plainly does. The notches are
-  // #    separate marks rather than one swept arc, because the days
-  // #    that count are scattered through the month and an arc would
-  // #    draw them as one unbroken stretch they never were
-  // ============================================================
-  function dayRing(series, n) {
-    const s = 120, cx = s / 2, r = 46, len = 9;
-    let out = `<svg viewBox="0 0 ${s} ${s}" class="dayring" role="img">`;
-    for (let d = 1; d <= n; d++) {
-      const a = (-90 + (360 * (d - 1)) / n) * Math.PI / 180;
-      const hit = series.find(p => p.day === d);
-      const v = hit ? hit.value : null;
-      const cls = v === null || v === undefined ? 'notch-none' : v ? 'notch-on' : 'notch-off';
-      const x1 = cx + (r - len / 2) * Math.cos(a), y1 = cx + (r - len / 2) * Math.sin(a);
-      const x2 = cx + (r + len / 2) * Math.cos(a), y2 = cx + (r + len / 2) * Math.sin(a);
-      out += `<line class="${cls}" x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}"` +
-        ` data-tip="${d} — ${v === null || v === undefined ? 'لم يُسجَّل' : v ? 'ملتزم' : 'غير ملتزم'}"/>`;
-    }
-    return out + '</svg>';
-  }
-
-  // ============================================================
-  // # 🧱 🃏  PUTTING A CARD TOGETHER
-  // # 🔤 JavaScript
-  // # 🎯 The shell every measure sits in: its name, its figure, and
-  // #    the shape under them
-  // # 🔗 Three things on a card and no fourth. The subtitle, the
-  // #    small print, the legend and the row of named percentages
-  // #    are all gone: what each of them said is on the shape itself
-  // #    now, in the tooltip of the mark it belonged to
-  // ============================================================
-  const big = (value, before) => {
+  const card = (id, title, value, before, series, sp, wide) => {
     let d = '';
     if (value !== null && before !== null && before !== undefined) {
-      const n = Math.round((value - before) * 100);
-      d = `<span class="delta ${n > 0 ? 'up' : n < 0 ? 'down' : ''}">${n > 0 ? '+' : ''}${n}</span>`;
+      const k = Math.round((value - before) * 100);
+      d = `<span class="delta ${k > 0 ? 'up' : k < 0 ? 'down' : ''}">${k > 0 ? '+' : ''}${k}</span>`;
     }
-    return '<div class="hero">' +
-      (value === null ? '<span class="none">—</span>' : `<b>${pct(value)}%</b>`) + d + '</div>';
+    return `<article class="mcard${wide ? ' wide' : ''}" style="--c:${HUE[id]}" data-card="${id}">` +
+      `<h3>${title}</h3>` +
+      '<div class="hero">' +
+      (value === null ? '<span class="none">—</span>' : `<b>${pct(value)}%</b>`) + d + '</div>' +
+      `<div class="plot">${chart(id, series, sp, HUE[id])}</div></article>`;
   };
-
-  const card = (id, title, body, wide) =>
-    `<article class="mcard${wide ? ' wide' : ''}" style="--c:${HUE[id]}" data-card="${id}">` +
-    `<h3>${title}</h3>${body}</article>`;
-
-  const tick = (label, value) => `<div class="tick"><span>${label}</span><b>${value}</b></div>`;
-
-  // ============================================================
-  // # 🗂️ 🖼️  THE FIVE
-  // # 🔤 JavaScript
-  // # 🎯 Each measure's own body
-  // # 🔗 Every label that used to be printed beside a mark is now in
-  // #    that mark's tooltip. The only words left on a card are its
-  // #    name and, where a figure would be meaningless without one,
-  // #    a word of three letters
-  // ============================================================
-  function loveCard(r, prev) {
-    const p = r.love.parts;
-    const t = (name, w, g) => `${name} · وزن ${w} · ${g.done} من ${g.answered}`;
-    return card('love', 'محبة الله',
-      big(r.love.value, prev && prev.love.value) +
-      '<div class="shape">' + rings([
-        { value: p.fard.ratio, color: LOVE_STEPS[0], tip: t('الواجبات', '٥٠٪', p.fard) },
-        { value: p.avoid.ratio, color: LOVE_STEPS[1], tip: t('اجتناب النواهي', '٢٥٪', p.avoid) },
-        { value: p.nafl.ratio, color: LOVE_STEPS[2], tip: t('النوافل', '٢٥٪', p.nafl) }
-      ]) + '</div>');
-  }
-
-  // The short name is cut from the owner's own words rather than
-  // invented: the first word of each is already the thing itself
-  const SHORT = { 'الاكل معد منزليا': 'أكل', 'النادي': 'نادي',
-    'عدم شرب قهوة/ الا سبت': 'قهوة', 'النوم المبكر قبل 9': 'نوم' };
-
-  function bodyCard(r, prev) {
-    const items = r.body.items.map(i => ({
-      value: i.ratio,
-      short: SHORT[i.label] || i.label.split(' ')[0],
-      tip: `${i.label} · ${i.done} من ${i.target} · ${i.ratio === null ? '—' : Math.round(i.ratio * 100) + '٪'}`
-    }));
-    return card('body', 'الصحة الجسدية',
-      big(r.body.value, prev && prev.body.value) +
-      `<div class="shape">${columns(items)}</div>`);
-  }
-
-  const mindCard = (r, prev) => card('mind', 'الصحة النفسية',
-    big(r.mind.value, prev && prev.mind.value) +
-    '<div class="shape">' + arc(r.mind.value, [
-      { value: r.mind.inputs.love, tip: `محبة الله · ${pct(r.mind.inputs.love)}٪` },
-      { value: r.mind.inputs.body, tip: `الصحة الجسدية · ${pct(r.mind.inputs.body)}٪` }
-    ], HUE.mind) + '</div>');
-
-  function studyCard(r, prev, n) {
-    const s = r.study;
-    return card('study', 'المرونة الذهنية',
-      big(s.value, prev && prev.study.value) +
-      `<div class="shape row">${dots(s.daily, n, s.longest)}</div>` +
-      '<div class="ticks">' +
-      tick('إنجاز', s.achievement === null ? '—' : pct(s.achievement) + '٪') +
-      tick('تعافٍ', s.recovery === null ? '—' : pct(s.recovery) + '٪') +
-      tick('أطول', s.longest) +
-      '</div>');
-  }
-
-  function gritCard(r, prev, n) {
-    const bars = r.grit.ranked.map((m, k) =>
-      `<div class="gbar${k === 0 ? ' weak' : ''}" data-tip="${esc(m.label)} · ${pct(m.value)}٪">` +
-      `<span style="height:${Math.round(m.value * 100)}%"></span></div>`).join('');
-    return card('grit', 'الصلابة والالتزام',
-      '<div class="split">' +
-      '<div class="half">' +
-      big(r.grit.value, prev && prev.grit.value) +
-      '<div class="ticks">' +
-      tick('ملتزمة', `${r.grit.committed}/${r.grit.written}`) +
-      tick('أطول', r.grit.longest) +
-      '</div></div>' +
-      `<div class="shape" data-tip="يوم ملتزم: بلغ فيه ${M.NEED} من ٤ مقاييس حدّ ${pct(M.FLOOR)}٪">${dayRing(r.grit.daily, n)}</div>` +
-      `<div class="gbars" data-tip="المقاييس الأربعة، والأضعف باهت">${bars}</div>` +
-      '</div>', true);
-  }
 
   // ============================================================
   // # 🚪 🖌️  PUTTING THE MONTH ON THE SCREEN
   // # 🔤 JavaScript
-  // # 🎯 Asks the engine for this month and the one before, draws
-  // #    the five cards, and hangs the one tooltip on every mark
-  // # 🔗 The month before is fetched only for the change beside each
-  // #    figure. A month with nothing written says so in a line
-  // #    rather than drawing five empty shapes: an empty chart reads
-  // #    as a thing that broke, not a month not yet lived
+  // # 🎯 Asks the engine for this month and the one before, smooths
+  // #    each series over a trailing week, and draws the five
+  // # 🔗 The days are RIPENED first -- a blank square on a day
+  // #    already past counts as not done -- so the curves are drawn
+  // #    off exactly what the board shows. A month with nothing
+  // #    written says so in a line instead of drawing five flat
+  // #    curves at nought, which would read as a measured failure
+  // #    rather than an unlived month
   // ============================================================
   function render(year, month, host) {
-    // The same read-only rule the board draws by: a blank square on a
-    // day already past is counted as not done. The numbers have to be
-    // measured off exactly what the reader is looking at, or he reads
-    // a red month and is told it scored well
     const days = B.ripen(B.read().days);
     const r = M.forMonth(year, month, days);
     const before = month === 1 ? null : M.forMonth(year, month - 1, days);
@@ -368,11 +268,33 @@
       return;
     }
 
-    host.innerHTML = head +
-      loveCard(r, prev) + bodyCard(r, prev) + mindCard(r, prev) +
-      studyCard(r, prev, n) + gritCard(r, prev, n);
+    const five = [
+      ['love', 'محبة الله', r.love, prev && prev.love.value],
+      ['body', 'الصحة الجسدية', r.body, prev && prev.body.value],
+      ['mind', 'الصحة النفسية', r.mind, prev && prev.mind.value],
+      ['study', 'المرونة الذهنية', r.study, prev && prev.study.value],
+      ['grit', 'الصلابة والالتزام', r.grit, prev && prev.grit.value]
+    ].map(([id, title, part, was]) => ({ id, title, part, was, series: trailing(part.daily, n) }));
 
-    wireTips(host);
+    // ONE span for all five, taken as the widest of theirs. Five cards
+    // each stretched to its own first and last day would put the same
+    // date at five different places across the screen, and then
+    // comparing one curve with the one beside it would be reading two
+    // charts that only look alike
+    const spans = five.map(f => span(f.series)).filter(Boolean);
+    if (!spans.length) {
+      host.innerHTML = head + '<p class="empty-month">لا شيء مكتوبٌ في هذا الشهر بعد.</p>';
+      return;
+    }
+    const sp = {
+      from: Math.min(...spans.map(s => s.from)),
+      to: Math.max(...spans.map(s => s.to))
+    };
+
+    host.innerHTML = head + five.map((f, k) =>
+      card(f.id, f.title, f.part.value, f.was, f.series, sp, k === 4)).join('');
+
+    five.forEach(f => wire(host.querySelector(`.mcard[data-card="${f.id}"] svg`), f.series, sp, f.title));
   }
 
   window.CheckMeMetricsScreen = { render, HUE };
