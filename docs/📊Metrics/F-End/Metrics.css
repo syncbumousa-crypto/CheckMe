@@ -1,60 +1,50 @@
 /* ============================================================ */
 /* # 🖥️ 📐  FIVE CARDS, ONE SCREENFUL, NO SCROLLING */
 /* # 🔤 CSS */
-/* # 🎯 Lays the five measures out as a fixed grid the height of the */
+/* # 🎯 Lays the five measures out as a grid the height of the */
 /* #    window, so the whole month is taken in at once */
-/* # 🔗 The height is the window's, not the content's, and the rows */
-/* #    share it. That inverts the usual arrangement: instead of the */
-/* #    cards deciding how tall the page is, the page decides how */
-/* #    tall the cards are and every chart inside shrinks to fit. */
-/* #    The point of a dashboard is the COMPARISON, and a comparison */
-/* #    that needs scrolling between its halves is not one. Below a */
-/* #    phone width it gives up and scrolls, because three columns of */
-/* #    anything on a narrow screen is worse than a scroll */
+/* # 🔗 The height is the window's, not the content's: the page */
+/* #    decides how tall the cards are and every shape inside them */
+/* #    fits itself to that. The point of a dashboard is the */
+/* #    COMPARISON, and a comparison that needs scrolling between */
+/* #    its halves is not one. Below a phone width it gives up and */
+/* #    scrolls, because five shapes squeezed into four hundred */
+/* #    pixels is the point lost for the sake of the rule */
 /* ============================================================ */
 .metrics {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: auto 1fr 1fr;
-  gap: 10px;
+  gap: 12px;
   height: calc(100vh - 54px);
-  padding: 10px 14px 0;
+  padding: 12px 16px 0;
   box-sizing: border-box;
   max-width: 1600px;
   margin-inline: auto;
 }
 
-.mhead {
-  grid-column: 1 / -1;
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-}
-
-.mhead h2 { margin: 0; font-size: 1.15rem; font-weight: 600; letter-spacing: 0.01em; }
-.mhead .sub { margin: 0; font-size: 0.72rem; color: var(--ink-faint); }
+.mhead { grid-column: 1 / -1; display: flex; align-items: baseline; gap: 10px; }
+.mhead h2 { margin: 0; font-size: 1.1rem; font-weight: 600; }
+.mhead .sub { margin: 0; font-size: 0.7rem; color: var(--ink-faint); }
 
 /* ============================================================ */
-/* # 🃏 🤍  THE CARD, WITH ALMOST NOTHING ON IT */
+/* # 🃏 🤍  A CARD IS A NAME, A FIGURE AND A SHAPE */
 /* # 🔤 CSS */
-/* # 🎯 A name, a figure, a chart, and the few rows under it */
-/* # 🔗 Stripped on purpose. Every card used to carry a subtitle */
-/* #    naming its parts and a paragraph of small print explaining */
-/* #    itself, and between them they pushed the charts off the */
-/* #    screen -- the reader was given prose where he asked for a */
-/* #    shape. What the prose said is not lost: it moved into the */
-/* #    `title` of the thing it was about, where it is one hover */
-/* #    away and nought pixels tall. `min-height: 0` is what lets a */
-/* #    grid row actually shrink its contents instead of overflowing */
+/* # 🎯 Three things, with the shape taking whatever room is left */
+/* # 🔗 Nothing else is allowed on it. The subtitles, the small */
+/* #    print, the legends and the rows of named percentages are */
+/* #    all gone into the tooltips of the marks they described -- */
+/* #    which is what makes room for a shape big enough to read */
+/* #    across a desk. `min-height: 0` is what lets a grid row */
+/* #    shrink its contents instead of overflowing them */
 /* ============================================================ */
 .mcard {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
   min-height: 0;
-  padding: 12px 14px 12px;
-  border: 1px solid var(--line-soft);
-  border-radius: 16px;
+  padding: 14px 16px;
+  border-radius: 18px;
   background: var(--surface);
 }
 
@@ -62,143 +52,193 @@
 
 .mcard h3 {
   margin: 0;
-  font-size: 0.76rem;
+  font-size: 0.72rem;
   font-weight: 600;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.02em;
   color: var(--c);
+  opacity: 0.9;
 }
 
-.hero { display: flex; align-items: baseline; gap: 8px; }
-.hero b { font-size: 1.9rem; font-weight: 600; line-height: 1; color: var(--ink); }
-.hero .delta { font-size: 0.7rem; color: var(--ink-faint); }
+.hero { display: flex; align-items: baseline; gap: 7px; }
+.hero b { font-size: 2rem; font-weight: 600; line-height: 1; color: var(--ink); letter-spacing: -0.01em; }
+.hero .none { font-size: 1.6rem; color: var(--ink-faint); }
+.hero .delta { font-size: 0.68rem; color: var(--ink-faint); }
 .hero .delta.up { color: #0ca30c; }
 .hero .delta.down { color: #d03b3b; }
-.hero .none { font-size: 1.5rem; color: var(--ink-faint); }
+
+.shape {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* The strip of days is given room and centred in what is left,
+   instead of sitting on a line at the top of a card three times
+   its height. The slack above and below it is the whitespace a
+   sparse card wants, not a gap it failed to fill */
+.shape.row { flex: none; height: 40px; margin-block: auto; }
+.shape svg { display: block; height: 100%; width: auto; max-width: 100%; overflow: visible; }
+.shape.row svg { width: 100%; height: 100%; }
 
 /* ============================================================ */
-/* # 📈 📏  THE MARKS, AND THE AXIS THAT LINES UP */
+/* # ⭕ 🧵  RINGS */
 /* # 🔤 CSS */
-/* # 🎯 Thin strokes, a recessive grid, and axis figures set left to */
-/* #    right and ended on one edge */
-/* # 🔗 The axis numbers were ragged and sat on top of the first */
-/* #    day's label: left to right digits dropped into a right to */
-/* #    left page anchor where the text happens to end, so `0%`, */
-/* #    `50%` and `100%` each started somewhere different. Anchoring */
-/* #    them at the END against a fixed edge is what puts their */
-/* #    right sides in one line -- and the plot was pulled in to */
-/* #    leave them room of their own */
+/* # 🎯 Three nested tracks with a thick round ended stroke each, */
+/* #    opening at the top and running clockwise */
+/* # 🔗 The track is the same stroke at a tenth of the ink, so the */
+/* #    gap left in it IS the part not done and nothing has to be */
+/* #    labelled `incomplete`. Round caps, because a flat cut end */
+/* #    reads as a hard stop and these are all unfinished business. */
+/* #    Turned a quarter anticlockwise so the opening sits at twelve */
+/* #    o'clock, which is where an eye starts a circle */
 /* ============================================================ */
-.plot { flex: 1; min-height: 0; position: relative; }
-.plot svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.rings { transform: rotate(-90deg); }
+.ring-track { fill: none; stroke: var(--ink); opacity: 0.09; }
+.ring-fill { fill: none; stroke-linecap: round; transition: stroke-dashoffset 0.5s ease; }
+.ring-hit { fill: none; stroke: transparent; cursor: default; }
 
-.grid-line { stroke: var(--line-soft); stroke-width: 1; }
-.floor-line { stroke: var(--ink-faint); stroke-width: 1; stroke-dasharray: 3 4; opacity: 0.55; }
+/* ============================================================ */
+/* # 🎚️ 📶  COLUMNS */
+/* # 🔤 CSS */
+/* # 🎯 Four upright capsules filled from the floor */
+/* # 🔗 Height against a shared floor, which is the one encoding a */
+/* #    reader compares without being taught it. Rings here would */
+/* #    have said the four were parts of one thing, and they are */
+/* #    not: sleeping well is not a quarter of anything */
+/* ============================================================ */
+.col-track { fill: var(--ink); opacity: 0.09; }
+.col-fill { fill: var(--c); transition: height 0.5s ease, y 0.5s ease; }
+.cols g { cursor: default; }
 
-.axis-text {
-  fill: var(--ink-faint);
-  font-size: 9px;
+/* ============================================================ */
+/* # 🌗 📐  THE ARC AND ITS TWO NOTCHES */
+/* # 🔤 CSS */
+/* # 🎯 A three quarter track, the value swept over it, and a small */
+/* #    dot where each of its two parents falls */
+/* # 🔗 The notches wear the ink colour, not the arc's: they are */
+/* #    reference marks and not a second series, and a second */
+/* #    colour here would read as a second thing being measured */
+/* ============================================================ */
+.arc-track { fill: none; stroke: var(--ink); opacity: 0.09; stroke-linecap: round; }
+.arc-fill { fill: none; stroke-linecap: round; }
+.arc-mark { fill: var(--ink); opacity: 0.55; }
+.arc g { cursor: default; }
+
+/* ============================================================ */
+/* # ⚫ 🔗  DOTS, AND THE RUN UNDER THEM */
+/* # 🔤 CSS */
+/* # 🎯 A dot for every day, and a soft bar behind the longest */
+/* #    unbroken stretch */
+/* # 🔗 Three states that differ in WEIGHT and not only in colour: */
+/* #    solid for kept, a hollow ring for broken, a faint speck for */
+/* #    a day never written. The bar behind the run is this card's */
+/* #    whole argument -- springiness is not how many dots are */
+/* #    filled, it is whether they come back together after a gap */
+/* ============================================================ */
+.dot-on { fill: var(--c); }
+.dot-off { fill: none; stroke: var(--ink-faint); stroke-width: 1.4; }
+.dot-none { fill: var(--ink); opacity: 0.13; }
+.dot-run { fill: var(--c); opacity: 0.18; }
+.dots circle { cursor: default; }
+
+/* ============================================================ */
+/* # 🔘 🗓️  THE MONTH AS A RING OF NOTCHES */
+/* # 🔤 CSS */
+/* # 🎯 One tick per day around a circle, lit on a day that held */
+/* # 🔗 A circle has an end to reach and a row of cells does not, */
+/* #    which is the difference between `how many` and `did I hold */
+/* #    the line`. The unlit days keep a faint tick rather than */
+/* #    vanishing, or the ring would read as a month of fewer days */
+/* ============================================================ */
+.notch-on { stroke: var(--c); stroke-width: 3.2; stroke-linecap: round; }
+.notch-off { stroke: var(--ink); opacity: 0.18; stroke-width: 3.2; stroke-linecap: round; }
+.notch-none { stroke: var(--ink); opacity: 0.07; stroke-width: 3.2; stroke-linecap: round; }
+.dayring line { cursor: default; }
+
+/* ============================================================ */
+/* # 🔢 ▁  THE FEW FIGURES THAT STAYED */
+/* # 🔤 CSS */
+/* # 🎯 A one word label and a number under it, two or three a card */
+/* # 🔗 These are the only captions left anywhere, and each is one */
+/* #    word. They survived because their numbers are not shares of */
+/* #    anything and so cannot be drawn as a shape: a run of six */
+/* #    days is a count, not a proportion */
+/* ============================================================ */
+.ticks { display: flex; gap: 14px; }
+.tick span { display: block; font-size: 0.62rem; color: var(--ink-faint); }
+.tick b {
+  display: block;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
   direction: ltr;
   unicode-bidi: isolate;
 }
 
-.series { fill: none; stroke: var(--c); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
-.cross { stroke: var(--ink-dim); stroke-width: 1; }
-.dot { fill: var(--c); stroke: var(--surface); stroke-width: 2; }
-
-.cell-done { fill: #2f9e63; }
-.cell-miss { fill: #b8433f; }
-.cell-none { fill: var(--cell-none); }
-.cell-on { fill: var(--c); }
-.cell-off { fill: var(--cell-none); }
-
 /* ============================================================ */
-/* # ▁ 🔢  THE ROWS UNDER THE CHART */
+/* # 🪨 ⬛  THE WIDE CARD, SPLIT IN THREE */
 /* # 🔤 CSS */
-/* # 🎯 A name, a slim track and a share, on one line each */
-/* # 🔗 The count each share came from used to sit on a second line */
-/* #    below it, which doubled the height of every block of these */
-/* #    for a figure that is read once a month. It lives in the row's */
-/* #    `title` now. The share itself is set left to right and held */
-/* #    to one edge, for the same reason the axis is */
+/* # 🎯 The figure on one side, the ring of days in the middle, and */
+/* #    the four measures as columns on the other */
+/* # 🔗 The four are kept as columns and not bent into a fourth */
+/* #    ring: this card's question is whether they are EVEN, and */
+/* #    four heights off one floor answer it at a glance while four */
+/* #    arcs of different radius never can. The weakest is dimmed */
+/* #    rather than coloured, so the eye lands on it */
 /* ============================================================ */
-.meters { display: flex; flex-direction: column; gap: 5px; }
+.split { flex: 1; min-height: 0; display: flex; align-items: center; gap: 22px; }
+.split .half { display: flex; flex-direction: column; gap: 10px; }
+.split .shape { flex: none; height: 100%; max-height: 132px; }
 
-.meter-row {
-  display: grid;
-  grid-template-columns: 1fr 52px 34px;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.72rem;
-  color: var(--ink-dim);
+.gbars {
+  display: flex;
+  align-items: flex-end;
+  gap: 9px;
+  height: 100%;
+  max-height: 118px;
+  /* No pusher. An `auto` margin threw these to the far edge of
+     the card and left a hand of nothing between them and the
+     ring they belong with */
 }
 
-.meter-row .track {
-  height: 5px;
-  border-radius: 999px;
-  background: var(--cell-none);
-  overflow: hidden;
-}
-
-/* `display: block`, which it did NOT have, and the bar was invisible.
-   The track above it is a span too and came out block anyway, because
-   a grid child is blockified whether it asks to be or not -- so the
-   track looked right while the fill inside it, which is nobody's grid
-   child, stayed inline and ignored both its width and its height */
-.meter-row .fill {
-  display: block;
+.gbar {
+  width: 16px;
   height: 100%;
   border-radius: 999px;
-  background: var(--c);
+  background: rgba(255, 255, 255, 0.09);
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+  cursor: default;
 }
 
-.meter-row .fill.weak { background: var(--ink-faint); }
-
-.meter-row .num {
-  direction: ltr;
-  unicode-bidi: isolate;
-  text-align: end;
-  font-variant-numeric: tabular-nums;
-  color: var(--ink);
-}
-
-.meter-row .name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-.pair { display: flex; gap: 16px; }
-.pair div { font-size: 0.68rem; color: var(--ink-faint); }
-.pair b {
-  display: block;
-  font-size: 0.98rem;
-  color: var(--ink);
-  font-variant-numeric: tabular-nums;
-  direction: ltr;
-  unicode-bidi: isolate;
-  text-align: start;
-}
+.gbar span { display: block; width: 100%; border-radius: 999px; background: var(--c); min-height: 16px; }
+.gbar.weak span { background: var(--ink-faint); }
 
 /* ============================================================ */
-/* # 💬 🫧  THE TOOLTIP, WHICH NOW CARRIES THE PROSE */
+/* # 💬 🫧  THE TOOLTIP THAT CARRIES EVERY NAME */
 /* # 🔤 CSS */
-/* # 🎯 One floating label shared by every chart on the screen */
-/* # 🔗 It grew a job when the small print was taken off the cards: */
-/* #    the counts behind each share, and the note that the gym is */
-/* #    not in the daily dots, are all one hover away. Nothing was */
-/* #    deleted, it was moved to where it costs no height */
+/* # 🎯 One floating label shared by every mark on the screen */
+/* # 🔗 It is what the silence is paid for with. Not one ring, */
+/* #    column, dot or notch is captioned, and every one of their */
+/* #    names, counts and weights is in here, a hover away */
 /* ============================================================ */
 #mtip {
   position: fixed;
   z-index: 40;
   pointer-events: none;
-  padding: 5px 9px;
+  padding: 5px 10px;
+  border-radius: 8px;
+  background: #11141a;
   border: 1px solid var(--line);
-  border-radius: 7px;
-  background: var(--surface-2);
   color: var(--ink);
   font-size: 0.72rem;
   white-space: nowrap;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.5);
 }
-
-#mtip .n { direction: ltr; unicode-bidi: isolate; display: inline-block; }
 
 .empty-month {
   grid-column: 1 / -1;
@@ -206,10 +246,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px dashed var(--line-soft);
-  border-radius: 16px;
+  border-radius: 18px;
+  background: var(--surface);
   color: var(--ink-faint);
-  font-size: 0.86rem;
+  font-size: 0.84rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ring-fill, .col-fill { transition: none; }
 }
 
 /* ============================================================ */
@@ -217,39 +261,18 @@
 /* # 🔤 CSS */
 /* # 🎯 Below a phone width the grid gives up its fixed height and */
 /* #    the page scrolls */
-/* # 🔗 Five cards cannot share four hundred pixels and stay */
-/* #    readable. Insisting on the one screen there would deliver */
-/* #    five charts too small to read, which is the whole point lost */
-/* #    for the sake of the rule that was meant to serve it */
+/* # 🔗 Insisting on the one screen there would deliver five shapes */
+/* #    too small to read, which is the whole point lost for the */
+/* #    sake of the rule that was meant to serve it */
 /* ============================================================ */
 @media (max-width: 900px) {
-  .metrics {
-    grid-template-columns: 1fr;
-    grid-template-rows: none;
-    height: auto;
-    padding: 10px 10px 56px;
-  }
+  .metrics { grid-template-columns: 1fr; grid-template-rows: none; height: auto; padding: 10px 10px 58px; }
   .mcard.wide { grid-column: span 1; }
-  .plot { height: 110px; flex: none; }
+  .shape { height: 150px; flex: none; }
+  .split { flex-direction: column; align-items: stretch; gap: 14px; }
+  .gbars { margin-inline-start: 0; height: 100px; }
 }
 
-/* شريطُ الأيام ليس رسمًا يتمدّد: ارتفاعُه ثابتٌ صغير، وإلا
-   ابتلع نصيبَ البطاقةِ كلَّه حين جُعل الرسمُ يملأ ما بقي */
-.plot.strip { flex: none; height: 20px; }
-
-/* ============================================================ */
-/* # ↕️ 🧲  THE SLACK GOES BETWEEN, NOT UNDERNEATH */
-/* # 🔤 CSS */
-/* # 🎯 Pushes the last block of a card to its floor, so the room */
-/* #    left over is spread inside the card instead of pooling at */
-/* #    the bottom of it */
-/* # 🔗 Two of the five cards carry a day strip rather than a */
-/* #    chart, and a strip is twenty pixels tall whatever the card */
-/* #    is. They came out with a hand of dead space under them while */
-/* #    their neighbours were full, which reads as two cards that */
-/* #    failed to load. On the three cards whose chart already */
-/* #    stretches there is no slack to move, so the rule costs them */
-/* #    nothing */
-/* ============================================================ */
-.mcard > *:last-child { margin-block-start: auto; }
-.plot.strip { flex: none; height: 26px; }
+/* The one word under each column: as small and as quiet as a
+   caption can be and still be read */
+.col-name { fill: var(--ink-faint); font-size: 9px; }
