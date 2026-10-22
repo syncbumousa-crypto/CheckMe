@@ -1,0 +1,87 @@
+/* ============================================================ */
+/* # ✒️ 🅰️  HT HELIOPOLIS, THE SITE'S OWN FACE */
+/* # 🔤 CSS */
+/* # 🎯 Declares the six weights of the owner's own typeface from */
+/* #    files served beside this one */
+/* # 🔗 Copied from his kit, not fetched from anywhere: a face named */
+/* #    in a stylesheet and a face actually drawn are two different */
+/* #    things, and the only way to be sure they are the same one is */
+/* #    to carry the bytes. `woff2` only -- every browser this site */
+/* #    will meet reads it, and the ttf beside it in his kit is four */
+/* #    times the weight for nothing. `swap` so the page is readable */
+/* #    while they arrive: a month's figures held back for a font is */
+/* #    a trade nobody wants */
+/* ============================================================ */
+@font-face {
+  font-family: "HT Heliopolis";
+  font-style: normal;
+  font-weight: 100;
+  font-display: swap;
+  src: url("HT-Heliopolis-Thin.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "HT Heliopolis";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("HT-Heliopolis-Regular.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "HT Heliopolis";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("HT-Heliopolis-Medium.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "HT Heliopolis";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("HT-Heliopolis-SemiBold.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "HT Heliopolis";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("HT-Heliopolis-Bold.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "HT Heliopolis";
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+  src: url("HT-Heliopolis-Heavy.woff2") format("woff2");
+}
+
+/* ============================================================ */
+/* # 🅰️ ⚠️  THE TWO WARNINGS THAT COME WITH IT */
+/* # 🔤 CSS */
+/* # 🎯 Turns on the swash the face is drawn with, and keeps every */
+/* #    weight on one of the six that exist */
+/* # 🔗 Both are the type designer's own words in the kit. Without */
+/* #    `swsh` the kaf is a different letter from the one on his */
+/* #    site -- so it is set once, here, on everything, rather than */
+/* #    left to be remembered. And there is NO 800: a rule asking */
+/* #    for one gets a weight the browser invents by smearing 900, */
+/* #    which is why nothing in this site asks for it */
+/* ============================================================ */
+:root {
+  --face: "HT Heliopolis", system-ui, "Segoe UI", sans-serif;
+}
+
+body {
+  font-family: var(--face);
+  font-feature-settings: "swsh" 1;
+}
+
+input, button, select, textarea {
+  font-family: inherit;
+  font-feature-settings: "swsh" 1;
+}

@@ -66,7 +66,7 @@ const WANT = [
   ['عدد بنود الجسدية', 4, r => r.counts.body],
   ['محبة الله', '0.397786', r => r.love.value.toFixed(6)],
   ['الواجبات المُنجَزة من المُجابة', '34/96', r => `${r.love.parts.fard.done}/${r.love.parts.fard.answered}`],
-  ['اجتناب النواهي', '19/32', r => `${r.love.parts.avoid.done}/${r.love.parts.avoid.answered}`],
+  ['النواهي', '19/32', r => `${r.love.parts.avoid.done}/${r.love.parts.avoid.answered}`],
   ['النوافل', '74/256', r => `${r.love.parts.nafl.done}/${r.love.parts.nafl.answered}`],
   ['الصحة الجسدية', '0.127232', r => r.body.value.toFixed(6)],
   ['القهوة: أيامٌ مُجابة (السبتان خارجها)', 14, r => r.body.items.find(i => i.label.includes('قهوة')).answered],
@@ -77,7 +77,7 @@ const WANT = [
   ['الصلابة: أيامٌ ملتزمة (ثلاثةٌ من أربعة)', '1 من 16', r => `${r.grit.committed} من ${r.grit.written}`],
   ['الصلابة: أطول سلسلة', 1, r => r.grit.longest],
   ['الصلابة: الأضعف', 'المرونة الذهنية', r => r.grit.weakest.label],
-  ['بندٌ خارج كل المقاييس', 'عدم الغرق بالسوشال ويوتيوب', r => r.orphans.join(' · ')]
+  ['بندٌ خارج كل المقاييس', 'لاغرق سوشال', r => r.orphans.join(' · ')]
 ];
 
 // ============================================================

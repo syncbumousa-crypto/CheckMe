@@ -71,17 +71,52 @@
   // #    about them, and the crossing is UNEVEN -- four extra prayers,
   // #    not five, since Asr has none. Counting beats assuming
   // ============================================================
-  const layout = B.GROUPS.map(g => {
-    const items = [];
-    B.ITEMS.forEach((it, i) => { if (it.g === g.id) items.push({ ...it, i }); });
-    const bands = [];
-    items.forEach(it => {
-      const last = bands[bands.length - 1];
-      if (last && last.sub === it.sub) last.items.push(it);
-      else bands.push({ sub: it.sub, items: [it] });
-    });
-    return { ...g, items, bands };
-  });
+  // ============================================================
+  // # 🔀 🧮  DISPLAY ORDER IS NOT STORAGE ORDER
+  // # 🔤 JavaScript
+  // # 🎯 Works out which columns are shown and in what order, and
+  // #    carries each one's real place in the stored day with it
+  // # 🔗 This split is what makes adding a line safe. A new line can
+  // #    only ever be APPENDED to the stored list, or every index
+  // #    after it would come to mean something else in a hundred and
+  // #    sixty nine saved days -- but it has to be SHOWN inside its
+  // #    own group, wherever that group sits. So the head and the
+  // #    squares are both built from this order and both carry the
+  // #    storage index; before the split the head was grouped and
+  // #    the squares ran straight through, and the first line added
+  // #    to any group but the last would have put every answer in
+  // #    the wrong column. A hidden line is simply never listed
+  // ============================================================
+  let layout = [], ORDER = [], edgeOf = () => '', groupOf = [];
+
+  function relayout() {
+    layout = B.GROUPS.map(g => {
+      const items = [];
+      B.ITEMS.forEach((it, i) => {
+        if (it.g !== g.id || (B.hidden && B.hidden.has(i))) return;
+        items.push({ ...it, i });
+      });
+      const bands = [];
+      items.forEach(it => {
+        const last = bands[bands.length - 1];
+        if (last && last.sub === it.sub) last.items.push(it);
+        else bands.push({ sub: it.sub, items: [it] });
+      });
+      return { ...g, items, bands };
+    }).filter(g => g.items.length);
+
+    ORDER = [];
+    const marks = {}, groups = {};
+    layout.forEach(g => g.bands.forEach((b, bi) => b.items.forEach((it, ii) => {
+      ORDER.push(it.i);
+      marks[it.i] = ii === 0 ? (bi === 0 ? ' group-start' : ' band-start') : '';
+      groups[it.i] = g.id;
+    })));
+    edgeOf = i => marks[i] || '';
+    groupOf = groups;
+  }
+
+  relayout();
 
   const hueStyle = () => {
     const tag = document.createElement('style');
@@ -89,15 +124,7 @@
     document.head.appendChild(tag);
   };
 
-  const edgeOf = (() => {
-    const marks = [];
-    layout.forEach((g, gi) => g.bands.forEach((b, bi) => b.items.forEach((it, ii) => {
-      marks[it.i] = ii === 0 ? (bi === 0 ? ' group-start' : ' band-start') : '';
-    })));
-    return i => marks[i] || '';
-  })();
 
-  const groupOf = B.ITEMS.map(it => it.g);
   const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
 
   // ============================================================
@@ -133,12 +160,20 @@
   // ============================================================
   const MONTH_W = 46, DAY_W = 104;
 
-  const colWidths = (() => {
-    const per = g => Math.max(30, Math.ceil((g.label.length * 7 + 16) / g.items.length));
+  // A column must carry whichever name is tightest over it: its
+  // group's, spread over all that group's columns, or its BAND's,
+  // spread over the band's few. The band used to be left out, and
+  // the day `وغيرها` was renamed the head quietly
+  // started printing `اجتناب ...` over two columns that had been
+  // sized for the shorter word
+  const colWidths = () => {
+    const demand = (label, count) => Math.ceil((label.length * 7 + 16) / count);
     const out = [];
-    layout.forEach(g => g.items.forEach(() => out.push(per(g))));
+    layout.forEach(g => g.bands.forEach(b => b.items.forEach(() => out.push(
+      Math.max(30, demand(g.label, g.items.length), demand(b.sub || '', b.items.length))
+    ))));
     return out;
-  })();
+  };
 
   // The table is given the sum as its own width. The `col` widths plus
   // `table-layout: fixed` ought to be enough on their own, and they
@@ -147,11 +182,11 @@
   // `auto` is free to decide, and it decided from the contents the
   // fixed layout was supposed to stop it reading. Told a number, it
   // has nothing left to decide
-  const TABLE_W = MONTH_W + DAY_W + colWidths.reduce((a, b) => a + b, 0);
+  const tableWidth = () => MONTH_W + DAY_W + colWidths().reduce((a, b) => a + b, 0);
 
   const columns = () =>
     `<colgroup><col style="width:${MONTH_W}px"><col style="width:${DAY_W}px">` +
-    colWidths.map(w => `<col style="width:${w}px">`).join('') + '</colgroup>';
+    colWidths().map(w => `<col style="width:${w}px">`).join('') + '</colgroup>';
 
   function head() {
     let r1 = '<tr><th class="month" rowspan="3"></th>' +
@@ -161,10 +196,24 @@
     let r3 = '<tr>';
 
     layout.forEach(g => {
-      r1 += `<th class="group g-${g.id} group-start" colspan="${g.items.length}">${esc(g.label)}</th>`;
+      // A group with no bands under it reaches down through both head
+      // rows instead of leaving an empty strip beneath its name. The
+      // strip was the real complaint: the name was centred in its own
+      // row perfectly well, and sat at the top of the block the eye
+      // reads as belonging to it
+      const banded = g.bands.some(b => b.sub);
+      r1 += `<th class="group g-${g.id} group-start" colspan="${g.items.length}"` +
+        `${banded ? '' : ' rowspan="2"'}>${esc(g.label)}</th>`;
+
       g.bands.forEach(b => {
-        r2 += `<th class="band g-${g.id}${edgeOf(b.items[0].i)}" colspan="${b.items.length}">` +
-          `${esc(b.sub)}</th>`;
+        // Only the BAND cell is skipped when a group has none. Its
+        // items still need their own heads in the third row, and
+        // skipping the whole turn once dropped fourteen of the thirty
+        // columns out of the head while their squares stayed below
+        if (banded) {
+          r2 += `<th class="band g-${g.id}${edgeOf(b.items[0].i)}" colspan="${b.items.length}">` +
+            `${esc(b.sub)}</th>`;
+        }
         b.items.forEach(it => {
           r3 += `<th class="item g-${g.id}${edgeOf(it.i)}"><span>${esc(it.label)}</span></th>`;
         });
@@ -181,7 +230,7 @@
     const flags = (date === TODAY ? ' is-today' : '') + (w === 5 ? ' is-friday' : '');
 
     let cells = '';
-    for (let i = 0; i < B.N; i++) {
+    for (const i of ORDER) {
       cells += `<td class="cell g-${groupOf[i]}${edgeOf(i)}" data-d="${date}" data-i="${i}"` +
         ` data-v="${shown(date, line[i])}" tabindex="-1" title="${esc(B.ITEMS[i].label)}"></td>`;
     }
@@ -203,7 +252,7 @@
   const grid = () => {
     let html = head();
     for (let m = 1; m <= 12; m++) html += monthBlock(year, m);
-    return `<table class="year" style="width:${TABLE_W}px">${html}</table>`;
+    return `<table class="year" style="width:${tableWidth()}px">${html}</table>`;
   };
 
   // ============================================================
@@ -333,6 +382,7 @@
 
   function draw() {
     findRipeFrom();
+    relayout();
     const wrap = $("grid-wrap");
     wrap.innerHTML = grid();
 
@@ -440,6 +490,17 @@
     wireAccount();
     goToToday(false);
     connectDrive();
+
+    // The whole grid is rebuilt when the list of things changes: a
+    // new column, a renamed one or one set aside moves every square
+    // after it on screen, and patching that in place would be more
+    // code than drawing it again
+    document.addEventListener('items-changed', () => {
+      const keep = $('grid-wrap').scrollTop;
+      board = B.read();
+      draw();
+      $('grid-wrap').scrollTop = keep;
+    });
   }
 
   start();
