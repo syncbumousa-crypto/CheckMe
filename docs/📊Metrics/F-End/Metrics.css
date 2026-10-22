@@ -1,23 +1,26 @@
 /* ============================================================ */
-/* # 🃏 📐  THE CARD EVERY MEASURE IS BUILT IN */
+/* # 🖥️ 📐  FIVE CARDS, ONE SCREENFUL, NO SCROLLING */
 /* # 🔤 CSS */
-/* # 🎯 One shape for all five: a name, a big figure with its change, */
-/* #    a chart, and the parts underneath */
-/* # 🔗 The same three layers in the same order every time, so the */
-/* #    five read as one screen and not as five things that were */
-/* #    gathered. What differs between them is the CHART, because */
-/* #    that is the only thing their questions differ in. Each card */
-/* #    carries its hue in `--c` and every mark inside it is drawn */
-/* #    from that one variable */
+/* # 🎯 Lays the five measures out as a fixed grid the height of the */
+/* #    window, so the whole month is taken in at once */
+/* # 🔗 The height is the window's, not the content's, and the rows */
+/* #    share it. That inverts the usual arrangement: instead of the */
+/* #    cards deciding how tall the page is, the page decides how */
+/* #    tall the cards are and every chart inside shrinks to fit. */
+/* #    The point of a dashboard is the COMPARISON, and a comparison */
+/* #    that needs scrolling between its halves is not one. Below a */
+/* #    phone width it gives up and scrolls, because three columns of */
+/* #    anything on a narrow screen is worse than a scroll */
 /* ============================================================ */
 .metrics {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
-  gap: 14px;
-  padding-block: 14px 56px;
-  padding-inline: 16px;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: auto 1fr 1fr;
+  gap: 10px;
+  height: calc(100vh - 54px);
+  padding: 10px 14px 0;
   box-sizing: border-box;
-  max-width: 1500px;
+  max-width: 1600px;
   margin-inline: auto;
 }
 
@@ -25,79 +28,80 @@
   grid-column: 1 / -1;
   display: flex;
   align-items: baseline;
-  gap: 14px;
-  flex-wrap: wrap;
+  gap: 10px;
 }
 
-.mhead h2 { margin: 0; font-size: 1.5rem; font-weight: 700; }
-.mhead .sub { margin: 0; font-size: 0.84rem; color: var(--ink-dim); }
+.mhead h2 { margin: 0; font-size: 1.15rem; font-weight: 600; letter-spacing: 0.01em; }
+.mhead .sub { margin: 0; font-size: 0.72rem; color: var(--ink-faint); }
 
+/* ============================================================ */
+/* # 🃏 🤍  THE CARD, WITH ALMOST NOTHING ON IT */
+/* # 🔤 CSS */
+/* # 🎯 A name, a figure, a chart, and the few rows under it */
+/* # 🔗 Stripped on purpose. Every card used to carry a subtitle */
+/* #    naming its parts and a paragraph of small print explaining */
+/* #    itself, and between them they pushed the charts off the */
+/* #    screen -- the reader was given prose where he asked for a */
+/* #    shape. What the prose said is not lost: it moved into the */
+/* #    `title` of the thing it was about, where it is one hover */
+/* #    away and nought pixels tall. `min-height: 0` is what lets a */
+/* #    grid row actually shrink its contents instead of overflowing */
+/* ============================================================ */
 .mcard {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 14px 16px 16px;
-  border: 1px solid var(--line);
-  border-radius: 14px;
+  gap: 6px;
+  min-height: 0;
+  padding: 12px 14px 12px;
+  border: 1px solid var(--line-soft);
+  border-radius: 16px;
   background: var(--surface);
 }
 
-.mcard.wide { grid-column: 1 / -1; }
+.mcard.wide { grid-column: span 2; }
 
 .mcard h3 {
   margin: 0;
-  font-size: 0.95rem;
-  font-weight: 700;
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
   color: var(--c);
 }
 
-.mcard .why { margin: 2px 0 0; font-size: 0.74rem; color: var(--ink-faint); }
-
-/* ============================================================ */
-/* # 🔢 ⬆️  THE FIGURE AND ITS CHANGE */
-/* # 🔤 CSS */
-/* # 🎯 The month in one number, with last month's difference beside */
-/* #    it */
-/* # 🔗 The number wears ink, never the card's hue: a figure painted */
-/* #    in the series colour competes with the marks that carry the */
-/* #    identity. The change is the part actually read -- a share on */
-/* #    its own says nothing until you know which way it moved -- so */
-/* #    it is never left off, and it says `لا سابق` rather than */
-/* #    nothing when there is no month before it to compare with */
-/* ============================================================ */
-.hero { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
-.hero b { font-size: 2.3rem; font-weight: 700; line-height: 1; color: var(--ink); }
-.hero .delta { font-size: 0.82rem; color: var(--ink-dim); }
+.hero { display: flex; align-items: baseline; gap: 8px; }
+.hero b { font-size: 1.9rem; font-weight: 600; line-height: 1; color: var(--ink); }
+.hero .delta { font-size: 0.7rem; color: var(--ink-faint); }
 .hero .delta.up { color: #0ca30c; }
 .hero .delta.down { color: #d03b3b; }
-.hero .none { font-size: 1.6rem; color: var(--ink-faint); }
+.hero .none { font-size: 1.5rem; color: var(--ink-faint); }
 
 /* ============================================================ */
-/* # 📈 🖊️  THE MARKS */
+/* # 📈 📏  THE MARKS, AND THE AXIS THAT LINES UP */
 /* # 🔤 CSS */
-/* # 🎯 Thin lines, recessive axes, a faint floor line, and cells */
-/* #    with a gap between them */
-/* # 🔗 Two pixel strokes and a grid dimmer than the data: the axis */
-/* #    is scaffolding and must never be read before the line it */
-/* #    holds up. The two pixel gap between cells is what keeps a */
-/* #    run of greens reading as five days and not as one bar */
+/* # 🎯 Thin strokes, a recessive grid, and axis figures set left to */
+/* #    right and ended on one edge */
+/* # 🔗 The axis numbers were ragged and sat on top of the first */
+/* #    day's label: left to right digits dropped into a right to */
+/* #    left page anchor where the text happens to end, so `0%`, */
+/* #    `50%` and `100%` each started somewhere different. Anchoring */
+/* #    them at the END against a fixed edge is what puts their */
+/* #    right sides in one line -- and the plot was pulled in to */
+/* #    leave them room of their own */
 /* ============================================================ */
-.plot { position: relative; }
-.plot svg { display: block; width: 100%; height: auto; overflow: visible; }
+.plot { flex: 1; min-height: 0; position: relative; }
+.plot svg { display: block; width: 100%; height: 100%; overflow: visible; }
 
 .grid-line { stroke: var(--line-soft); stroke-width: 1; }
-.floor-line { stroke: var(--ink-faint); stroke-width: 1; stroke-dasharray: 3 4; opacity: 0.7; }
-.axis-text { fill: var(--ink-faint); font-size: 9px; }
+.floor-line { stroke: var(--ink-faint); stroke-width: 1; stroke-dasharray: 3 4; opacity: 0.55; }
+
+.axis-text {
+  fill: var(--ink-faint);
+  font-size: 9px;
+  direction: ltr;
+  unicode-bidi: isolate;
+}
 
 .series { fill: none; stroke: var(--c); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
-/* The two context lines are both grey, so they cannot be told apart
-   by colour and must not have to be: the second one is dashed. The
-   legend shows the same two patterns, so identity never rests on a
-   hue -- and two identical grey swatches in a legend name nothing */
-.series.ghost { stroke: var(--ink-faint); stroke-width: 1.5; opacity: 0.6; }
-.series.ghost.dashed { stroke-dasharray: 4 3; }
-.series-fill { fill: var(--c); opacity: 0.12; }
-
 .cross { stroke: var(--ink-dim); stroke-width: 1; }
 .dot { fill: var(--c); stroke: var(--surface); stroke-width: 2; }
 
@@ -108,46 +112,45 @@
 .cell-off { fill: var(--cell-none); }
 
 /* ============================================================ */
-/* # 📏 📊  METERS AND HORIZONTAL BARS */
+/* # ▁ 🔢  THE ROWS UNDER THE CHART */
 /* # 🔤 CSS */
-/* # 🎯 A labelled track for each part of a measure, and the four */
-/* #    measures ranked against each other */
-/* # 🔗 A meter is the right form for one ratio against a limit, and */
-/* #    it beats a slice of a circle at it: two tracks of the same */
-/* #    length can be compared by eye, two arcs cannot. The numbers */
-/* #    are set left to right inside a right to left page, or `34/96` */
-/* #    comes out as `96/34` */
+/* # 🎯 A name, a slim track and a share, on one line each */
+/* # 🔗 The count each share came from used to sit on a second line */
+/* #    below it, which doubled the height of every block of these */
+/* #    for a figure that is read once a month. It lives in the row's */
+/* #    `title` now. The share itself is set left to right and held */
+/* #    to one edge, for the same reason the axis is */
 /* ============================================================ */
-.meters { display: flex; flex-direction: column; gap: 7px; }
+.meters { display: flex; flex-direction: column; gap: 5px; }
 
 .meter-row {
   display: grid;
-  grid-template-columns: 1fr 64px 46px;
+  grid-template-columns: 1fr 52px 34px;
   align-items: center;
   gap: 8px;
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   color: var(--ink-dim);
 }
 
 .meter-row .track {
-  height: 8px;
+  height: 5px;
   border-radius: 999px;
   background: var(--cell-none);
   overflow: hidden;
 }
 
-/* `display: block`, which it did NOT have and the bar was invisible.
+/* `display: block`, which it did NOT have, and the bar was invisible.
    The track above it is a span too and came out block anyway, because
    a grid child is blockified whether it asks to be or not -- so the
    track looked right while the fill inside it, which is nobody's grid
-   child, stayed inline and ignored both its width and its height. It
-   read on screen as an empty grey groove at every value */
+   child, stayed inline and ignored both its width and its height */
 .meter-row .fill {
   display: block;
   height: 100%;
   border-radius: 999px;
   background: var(--c);
 }
+
 .meter-row .fill.weak { background: var(--ink-faint); }
 
 .meter-row .num {
@@ -158,70 +161,39 @@
   color: var(--ink);
 }
 
-.meter-row .of {
-  direction: ltr;
-  unicode-bidi: isolate;
-  text-align: end;
-  font-size: 0.7rem;
-  color: var(--ink-faint);
-  font-variant-numeric: tabular-nums;
-}
-
 .meter-row .name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-/* ============================================================ */
-/* # 🧾 🔤  THE LEGEND AND THE SMALL PRINT */
-/* # 🔤 CSS */
-/* # 🎯 Names the series when a chart carries more than one, and */
-/* #    holds the sentence that says what the chart does not show */
-/* # 🔗 A legend is not optional above one series: colour alone must */
-/* #    never be the only thing that tells two lines apart. And the */
-/* #    small print is where a card admits its own edge -- the body */
-/* #    chart leaves the gym out of its daily dots, and a reader who */
-/* #    is not told will read the dip as a bad day */
-/* ============================================================ */
-.legend-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 16px;
-  font-size: 0.74rem;
-  color: var(--ink-dim);
+.pair { display: flex; gap: 16px; }
+.pair div { font-size: 0.68rem; color: var(--ink-faint); }
+.pair b {
+  display: block;
+  font-size: 0.98rem;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  direction: ltr;
+  unicode-bidi: isolate;
+  text-align: start;
 }
 
-.legend-row i {
-  display: inline-block;
-  width: 14px;
-  height: 3px;
-  border-radius: 2px;
-  margin-inline-end: 6px;
-  vertical-align: 4px;
-}
-
-.fine { margin: 0; font-size: 0.72rem; color: var(--ink-faint); line-height: 1.5; }
-
-.pair { display: flex; gap: 18px; flex-wrap: wrap; }
-.pair div { font-size: 0.78rem; color: var(--ink-dim); }
-.pair b { display: block; font-size: 1.15rem; color: var(--ink); font-variant-numeric: tabular-nums; }
-
 /* ============================================================ */
-/* # 💬 🫧  THE TOOLTIP */
+/* # 💬 🫧  THE TOOLTIP, WHICH NOW CARRIES THE PROSE */
 /* # 🔤 CSS */
-/* # 🎯 One floating label, shared by every chart on the screen */
-/* # 🔗 One and not one per chart: five charts each carrying their */
-/* #    own would be five things to place, hide and keep in step. It */
-/* #    is `pointer-events: none` or it would sit under the cursor */
-/* #    and steal the hover that summoned it */
+/* # 🎯 One floating label shared by every chart on the screen */
+/* # 🔗 It grew a job when the small print was taken off the cards: */
+/* #    the counts behind each share, and the note that the gym is */
+/* #    not in the daily dots, are all one hover away. Nothing was */
+/* #    deleted, it was moved to where it costs no height */
 /* ============================================================ */
 #mtip {
   position: fixed;
   z-index: 40;
   pointer-events: none;
-  padding: 6px 10px;
+  padding: 5px 9px;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: 7px;
   background: var(--surface-2);
   color: var(--ink);
-  font-size: 0.76rem;
+  font-size: 0.72rem;
   white-space: nowrap;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
 }
@@ -230,14 +202,54 @@
 
 .empty-month {
   grid-column: 1 / -1;
-  padding: 40px 18px;
-  border: 1px dashed var(--line);
-  border-radius: 12px;
-  text-align: center;
-  color: var(--ink-dim);
+  grid-row: 2 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed var(--line-soft);
+  border-radius: 16px;
+  color: var(--ink-faint);
+  font-size: 0.86rem;
 }
 
-@media (max-width: 760px) {
-  .metrics { padding-inline: 10px; grid-template-columns: 1fr; }
-  .meter-row { grid-template-columns: 1fr 52px 42px; }
+/* ============================================================ */
+/* # 📱 🤏  WHERE ONE SCREENFUL STOPS BEING POSSIBLE */
+/* # 🔤 CSS */
+/* # 🎯 Below a phone width the grid gives up its fixed height and */
+/* #    the page scrolls */
+/* # 🔗 Five cards cannot share four hundred pixels and stay */
+/* #    readable. Insisting on the one screen there would deliver */
+/* #    five charts too small to read, which is the whole point lost */
+/* #    for the sake of the rule that was meant to serve it */
+/* ============================================================ */
+@media (max-width: 900px) {
+  .metrics {
+    grid-template-columns: 1fr;
+    grid-template-rows: none;
+    height: auto;
+    padding: 10px 10px 56px;
+  }
+  .mcard.wide { grid-column: span 1; }
+  .plot { height: 110px; flex: none; }
 }
+
+/* شريطُ الأيام ليس رسمًا يتمدّد: ارتفاعُه ثابتٌ صغير، وإلا
+   ابتلع نصيبَ البطاقةِ كلَّه حين جُعل الرسمُ يملأ ما بقي */
+.plot.strip { flex: none; height: 20px; }
+
+/* ============================================================ */
+/* # ↕️ 🧲  THE SLACK GOES BETWEEN, NOT UNDERNEATH */
+/* # 🔤 CSS */
+/* # 🎯 Pushes the last block of a card to its floor, so the room */
+/* #    left over is spread inside the card instead of pooling at */
+/* #    the bottom of it */
+/* # 🔗 Two of the five cards carry a day strip rather than a */
+/* #    chart, and a strip is twenty pixels tall whatever the card */
+/* #    is. They came out with a hand of dead space under them while */
+/* #    their neighbours were full, which reads as two cards that */
+/* #    failed to load. On the three cards whose chart already */
+/* #    stretches there is no slack to move, so the rule costs them */
+/* #    nothing */
+/* ============================================================ */
+.mcard > *:last-child { margin-block-start: auto; }
+.plot.strip { flex: none; height: 26px; }

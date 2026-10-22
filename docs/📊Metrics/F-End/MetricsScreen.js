@@ -1,14 +1,17 @@
 // ============================================================
 // # 📊 🖥️  DRAWING THE FIVE MEASURES OF A MONTH
 // # 🔤 JavaScript
-// # 🎯 Builds the month screen: five cards, each with its figure,
-// #    its chart and its parts
-// # 🔗 Every number on this screen comes from the engine and none is
-// #    worked out here. This file only chooses the SHAPE, and the
+// # 🎯 Builds the month screen: five cards on one screenful, each
+// #    with its figure, its chart and a line or two under it
+// # 🔗 Every number here comes from the engine and none is worked
+// #    out in this file. This one only chooses the SHAPE, and the
 // #    shape was chosen by the job the data has to do -- a line for
 // #    change over time, cells for runs, a track for one ratio
 // #    against a limit, ranked bars for `am I even`. The reasons are
-// #    written out in `MonthMetricsRoadmap.md`
+// #    written out in `MonthMetricsRoadmap.md`.
+// #    And the words were cut to the bone: what each card used to
+// #    say in a subtitle and a paragraph now lives in the `title` of
+// #    the thing it describes, one hover away and nought pixels tall
 // ============================================================
 (() => {
   const M = window.CheckMeMetrics;
@@ -33,35 +36,41 @@
   // ============================================================
   // # 📐 🧭  THE DRAWING BOARD, READ FROM THE RIGHT
   // # 🔤 JavaScript
-  // # 🎯 Turns a day number into an x, and a share into a y
-  // #    inside one fixed viewBox
+  // # 🎯 Turns a day number into an x and a share into a y, inside
+  // #    one fixed viewBox
   // # 🔗 Day one sits on the RIGHT and the month runs leftward,
-  // #    because the page and its reader run that way: a chart that
-  // #    starts its time axis on the left asks an Arabic reader to
-  // #    read the one thing on the screen backwards. The y scale is
-  // #    pinned to nought and one always, never to the data's own
+  // #    because the page and its reader run that way. The y scale
+  // #    is pinned to nought and one always, never to the data's own
   // #    range -- a chart rescaled to its contents makes a flat bad
-  // #    month look like a dramatic one
+  // #    month look like a dramatic one. And the right margin is
+  // #    now wide enough to hold the axis figures CLEAR of the plot:
+  // #    they were being drawn into the same column as the first
+  // #    day's label and sat on top of it
   // ============================================================
-  const W = 320, H = 108, TOP = 8, BOT = 16, LEFT = 6, RIGHT = 30;
+  const W = 320, H = 100, TOP = 7, BOT = 14, LEFT = 4, RIGHT = 32;
 
   const geo = n => ({
     x: day => (W - RIGHT) - ((day - 1) / Math.max(1, n - 1)) * (W - RIGHT - LEFT),
     y: v => TOP + (1 - v) * (H - TOP - BOT)
   });
 
-  function frame(n, extra = '') {
+  // Every axis figure is anchored at its END against one fixed edge,
+  // so `0%`, `50%` and `100%` line up on the right however many
+  // digits they carry. Anchored at the start, as they were, each one
+  // began wherever its own text happened to begin and the three of
+  // them came out ragged
+  function frame(n) {
     const g = geo(n);
     let out = '';
     [0, 0.5, 1].forEach(v => {
       out += `<line class="grid-line" x1="${LEFT}" x2="${W - RIGHT}" y1="${g.y(v)}" y2="${g.y(v)}"/>` +
-        `<text class="axis-text" x="${W - RIGHT + 5}" y="${g.y(v) + 3}">${v * 100}%</text>`;
+        `<text class="axis-text" x="${W - 2}" y="${g.y(v) + 3}" text-anchor="end">${v * 100}%</text>`;
     });
     out += `<line class="floor-line" x1="${LEFT}" x2="${W - RIGHT}" y1="${g.y(M.FLOOR)}" y2="${g.y(M.FLOOR)}"/>`;
-    [1, Math.ceil(n / 2), n].forEach(d => {
-      out += `<text class="axis-text" x="${g.x(d)}" y="${H - 3}" text-anchor="middle">${d}</text>`;
+    [1, n].forEach(d => {
+      out += `<text class="axis-text" x="${g.x(d)}" y="${H - 2}" text-anchor="middle">${d}</text>`;
     });
-    return out + extra;
+    return out;
   }
 
   const path = (series, n) => {
@@ -76,15 +85,14 @@
   };
 
   // ============================================================
-  // # 🖱️ 💬  THE HOVER LAYER
+  // # 🖱️ 💬  THE HOVER LAYER, WHICH NOW CARRIES THE PROSE TOO
   // # 🔤 JavaScript
   // # 🎯 A crosshair and a label that follow the pointer across a
-  // #    line chart, and a label on any single mark
-  // # 🔗 Shipped by default, not as a flourish: a chart on a screen
-  // #    that cannot be asked `which day was that` is a picture of
-  // #    data rather than the data. The hit area is the whole plot,
-  // #    not the two pixel line -- a target the width of the stroke
-  // #    is a target nobody hits
+  // #    chart, and a label on any single mark
+  // # 🔗 Shipped by default: a chart that cannot be asked `which day
+  // #    was that` is a picture of data rather than the data. The
+  // #    hit area is the whole plot, never the two pixel line -- a
+  // #    target the width of a stroke is a target nobody hits
   // ============================================================
   const tip = (() => {
     let el = null;
@@ -92,25 +100,28 @@
       show(html, ev) {
         if (!el) { el = document.createElement('div'); el.id = 'mtip'; document.body.appendChild(el); }
         el.innerHTML = html;
-        el.style.insetInlineStart = 'auto';
-        el.style.left = Math.min(ev.clientX + 14, innerWidth - el.offsetWidth - 10) + 'px';
-        el.style.top = Math.max(8, ev.clientY - 40) + 'px';
         el.hidden = false;
+        el.style.left = Math.max(8, Math.min(ev.clientX + 14, innerWidth - el.offsetWidth - 10)) + 'px';
+        el.style.top = Math.max(8, ev.clientY - 38) + 'px';
       },
       hide() { if (el) el.hidden = true; }
     };
   })();
 
   function wireLine(svg, rows, n, label) {
+    if (!svg) return;
     const g = geo(n);
-    const cross = svg.querySelector('.cross');
-    const dot = svg.querySelector('.dot');
-    const hit = svg.querySelector('.hit');
+    const cross = svg.querySelector('.cross'), dot = svg.querySelector('.dot'), hit = svg.querySelector('.hit');
     if (!hit) return;
 
     hit.addEventListener('mousemove', ev => {
       const box = svg.getBoundingClientRect();
-      const sx = ((ev.clientX - box.left) / box.width) * W;
+      // The svg is letterboxed inside its box, so the pointer is put
+      // back through the SAME transform the browser used to draw it.
+      // Reading it off the box alone drifts by the letterbox margin,
+      // and the crosshair lands on the wrong day by a day or two
+      const scale = Math.min(box.width / W, box.height / H);
+      const sx = (ev.clientX - box.left - (box.width - W * scale) / 2) / scale;
       let near = null, best = 1e9;
       rows.forEach(p => {
         if (p.value === null || p.value === undefined) return;
@@ -122,7 +133,7 @@
       cross.style.opacity = 1;
       dot.setAttribute('cx', g.x(near.day)); dot.setAttribute('cy', g.y(near.value));
       dot.style.opacity = 1;
-      tip.show(`${label} · يوم <span class="n">${near.day}</span> — <span class="n">${pct(near.value)}%</span>`, ev);
+      tip.show(`${label} · <span class="n">${near.day}</span> — <span class="n">${pct(near.value)}%</span>`, ev);
     });
 
     hit.addEventListener('mouseleave', () => {
@@ -130,75 +141,72 @@
     });
   }
 
-  const lineSvg = (rows, n, ghosts = []) =>
-    `<svg viewBox="0 0 ${W} ${H}" role="img">` +
+  const lineSvg = (rows, n) =>
+    `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" role="img">` +
     frame(n) +
-    ghosts.map((gh, k) => `<path class="series ghost${k ? ' dashed' : ''}" d="${path(gh, n)}"/>`).join('') +
     `<path class="series" d="${path(rows, n)}"/>` +
     `<line class="cross" y1="${TOP}" y2="${H - BOT}" x1="0" x2="0" style="opacity:0"/>` +
-    `<circle class="dot" r="4" cx="0" cy="0" style="opacity:0"/>` +
+    `<circle class="dot" r="3.5" cx="0" cy="0" style="opacity:0"/>` +
     `<rect class="hit" x="${LEFT}" y="${TOP}" width="${W - RIGHT - LEFT}" height="${H - TOP - BOT}" fill="transparent"/>` +
     '</svg>';
 
   // ============================================================
   // # 🟩 🎞️  A ROW OF DAYS
   // # 🔤 JavaScript
-  // # 🎯 One small square per day of the month, in the three answers
+  // # 🎯 One small cell per day of the month, in the three answers
   // #    or in on/off
   // # 🔗 The right form when the question is about RUNS. A line
   // #    through a yes-or-no series draws a sawtooth that says
-  // #    nothing; a row of cells shows at a glance where the streak
-  // #    was and where it broke. Day one is on the right, like
-  // #    everything else here
+  // #    nothing; a row of cells shows where the streak was and
+  // #    where it broke. Day one on the right, like everything else
   // ============================================================
-  function ribbon(series, n, klass) {
+  function ribbon(series, n, onOff) {
     const gap = 2, cw = (W - (n - 1) * gap) / n;
-    let out = `<svg viewBox="0 0 ${W} 26" role="img">`;
+    let out = `<svg viewBox="0 0 ${W} 20" preserveAspectRatio="none" role="img">`;
     for (let d = 1; d <= n; d++) {
       const hit = series.find(p => p.day === d);
       const v = hit ? hit.value : null;
-      const cls = v === null || v === undefined ? 'cell-none' : (klass ? (v ? 'cell-on' : 'cell-off') : (v ? 'cell-done' : 'cell-miss'));
+      const cls = v === null || v === undefined ? 'cell-none'
+        : onOff ? (v ? 'cell-on' : 'cell-off') : (v ? 'cell-done' : 'cell-miss');
       const x = W - cw - (d - 1) * (cw + gap);
-      out += `<rect class="${cls}" x="${x.toFixed(1)}" y="4" width="${cw.toFixed(1)}" height="18" rx="3" data-day="${d}" data-v="${v === null || v === undefined ? '' : v}"/>`;
+      out += `<rect class="${cls}" x="${x.toFixed(1)}" y="0" width="${cw.toFixed(1)}" height="20" rx="2"` +
+        ` data-day="${d}" data-v="${v === null || v === undefined ? '' : v}"/>`;
     }
     return out + '</svg>';
   }
 
   function wireRibbon(host, words) {
+    if (!host) return;
     host.querySelectorAll('rect[data-day]').forEach(r => {
       r.addEventListener('mouseenter', ev => {
         const v = r.dataset.v;
-        tip.show(`يوم <span class="n">${r.dataset.day}</span> — ${v === '' ? words.none : (Number(v) ? words.on : words.off)}`, ev);
+        tip.show(`<span class="n">${r.dataset.day}</span> — ${v === '' ? words.none : (Number(v) ? words.on : words.off)}`, ev);
       });
       r.addEventListener('mouseleave', () => tip.hide());
     });
   }
 
   // ============================================================
-  // # 📏 🧮  A TRACK FOR ONE RATIO
+  // # ▁ 🔢  ONE ROW, ONE RATIO
   // # 🔤 JavaScript
-  // # 🎯 A named row with a filled track, its share, and the count
-  // #    it came from
-  // # 🔗 The count travels with the share always. `100%` off two
+  // # 🎯 A name, a slim track and a share, with the count it came
+  // #    from held in the row's tooltip
+  // # 🔗 The count is not dropped, only moved. `100%` off two
   // #    answered days and `100%` off twenty eight are not the same
-  // #    claim, and a share printed on its own cannot tell them
-  // #    apart -- which is the commonest way a number on a dashboard
-  // #    lies without anybody writing an untruth
+  // #    claim, and that is the commonest way a dashboard lies
+  // #    without printing an untruth -- so it stays reachable, just
+  // #    not at the cost of doubling the height of every row
   // ============================================================
-  const meter = (name, ratio, done, of, weak) =>
-    '<div class="meter-row">' +
-    `<span class="name" title="${esc(name)}">${esc(name)}</span>` +
+  const meter = (name, ratio, note, weak) =>
+    `<div class="meter-row" title="${esc(note || name)}">` +
+    `<span class="name">${esc(name)}</span>` +
     `<span class="track"><span class="fill${weak ? ' weak' : ''}" style="width:${ratio === null ? 0 : Math.round(ratio * 100)}%"></span></span>` +
-    `<span class="num">${ratio === null ? '—' : Math.round(ratio * 100) + '%'}</span>` +
-    '</div>' +
-    (of === undefined ? '' : `<div class="meter-row"><span></span><span class="of">${done} / ${of}</span><span></span></div>`);
+    `<span class="num">${ratio === null ? '—' : Math.round(ratio * 100) + '%'}</span></div>`;
 
   const delta = (now, before) => {
-    if (now === null) return '<span class="delta">—</span>';
-    if (before === null || before === undefined) return '<span class="delta">لا شهر قبله</span>';
+    if (now === null || before === null || before === undefined) return '';
     const d = Math.round((now - before) * 100);
-    const cls = d > 0 ? 'up' : d < 0 ? 'down' : '';
-    return `<span class="delta ${cls}">${d > 0 ? '+' : ''}${d} نقطة عن الشهر السابق</span>`;
+    return `<span class="delta ${d > 0 ? 'up' : d < 0 ? 'down' : ''}">${d > 0 ? '+' : ''}${d}</span>`;
   };
 
   const hero = (value, before) =>
@@ -206,102 +214,93 @@
     (value === null ? '<span class="none">—</span>' : `<b>${pct(value)}%</b>`) +
     delta(value, before) + '</div>';
 
-  const card = (id, title, why, body) =>
-    `<article class="mcard${id === 'grit' ? ' wide' : ''}" style="--c:${HUE[id]}" data-card="${id}">` +
-    `<div><h3>${title}</h3><p class="why">${why}</p></div>${body}</article>`;
+  const card = (id, title, body, wide) =>
+    `<article class="mcard${wide ? ' wide' : ''}" style="--c:${HUE[id]}" data-card="${id}">` +
+    `<h3>${title}</h3>${body}</article>`;
+
+  const num = (label, value) => `<div>${label}<b>${value}</b></div>`;
 
   // ============================================================
   // # 🧱 🃏  THE FIVE CARDS
   // # 🔤 JavaScript
-  // # 🎯 Each measure's own body: its chart and the parts under it
-  // # 🔗 The body card says in its small print that the gym is not
-  // #    in its daily dots. That sentence is not politeness: the
-  // #    month's figure counts the gym against a weekly target while
-  // #    the dots cannot, so the line and the headline are measuring
-  // #    slightly different things, and a reader who is not told
-  // #    will read the gap as an error
+  // # 🎯 Each measure's body: its figure, its chart, and the few
+  // #    rows that say what the figure is made of
+  // # 🔗 The mind card draws ONE line now, not three. Its two inputs
+  // #    used to run behind it in grey so the reader could see which
+  // #    pulled it down -- and then the five cards were put on one
+  // #    screen together, which makes those two their own cards an
+  // #    inch away. A ghost of a chart already on the screen is
+  // #    clutter, and dropping it drops its legend with it
   // ============================================================
   function loveCard(r, prev, n) {
     const p = r.love.parts;
-    return card('love', 'مقياس محبة الله', 'الواجبات · اجتناب النواهي · النوافل',
+    const c = g => `${g.done} من ${g.answered} إجابة`;
+    return card('love', 'محبة الله',
       hero(r.love.value, prev && prev.love.value) +
-      `<div class="plot" data-line="love">${lineSvg(r.love.daily, n)}</div>` +
+      `<div class="plot">${lineSvg(r.love.daily, n)}</div>` +
       '<div class="meters">' +
-      meter('الواجبات (وزن ٥٠٪)', p.fard.ratio, p.fard.done, p.fard.answered) +
-      meter('اجتناب النواهي (٢٥٪)', p.avoid.ratio, p.avoid.done, p.avoid.answered) +
-      meter('النوافل (٢٥٪)', p.nafl.ratio, p.nafl.done, p.nafl.answered) +
+      meter('الواجبات', p.fard.ratio, `الواجبات · وزن ٥٠٪ · ${c(p.fard)}`) +
+      meter('اجتناب النواهي', p.avoid.ratio, `اجتناب النواهي · وزن ٢٥٪ · ${c(p.avoid)}`) +
+      meter('النوافل', p.nafl.ratio, `النوافل · وزن ٢٥٪ · ${c(p.nafl)}`) +
       '</div>');
   }
 
   function bodyCard(r, prev, n) {
-    const weakest = r.body.items.filter(i => i.ratio !== null).sort((a, b) => a.ratio - b.ratio)[0];
-    return card('body', 'مقياس الصحة الجسدية', 'النوم · الأكل · النادي · القهوة',
+    const note = 'النقاط اليومية فيها الأكل والقهوة والنوم فقط. ' +
+      'النادي هدف أسبوعي فلا قيمة له في يوم بعينه، وهو محسوب كاملًا في الرقم الأعلى.';
+    return card('body', 'الصحة الجسدية',
       hero(r.body.value, prev && prev.body.value) +
-      `<div class="plot" data-line="body">${lineSvg(r.body.daily, n)}</div>` +
+      `<div class="plot" title="${esc(note)}">${lineSvg(r.body.daily, n)}</div>` +
       '<div class="meters">' +
-      r.body.items.map(i => meter(i.label, i.ratio, i.done, i.target)).join('') +
-      '</div>' +
-      '<p class="fine">النقاط اليومية فيها الأكل والقهوة والنوم فقط. ' +
-      'النادي هدفٌ أسبوعيّ، فلا قيمة له في يومٍ بعينه، وهو محسوبٌ كاملًا في الرقم الأعلى.' +
-      (weakest ? ` وأضعفها هذا الشهر: ${esc(weakest.label)}.` : '') + '</p>');
-  }
-
-  function mindCard(r, prev, n) {
-    const ghosts = [r.love.daily, r.body.daily];
-    return card('mind', 'مقياس الصحة النفسية', 'نصفُه محبة الله ونصفُه الصحة الجسدية',
-      hero(r.mind.value, prev && prev.mind.value) +
-      `<div class="plot" data-line="mind">${lineSvg(r.mind.daily, n, ghosts)}</div>` +
-      '<div class="legend-row">' +
-      `<span><i style="background:${HUE.mind}"></i>الصحة النفسية</span>` +
-      '<span><i style="background:#6b7380"></i>محبة الله</span>' +
-      '<span><i style="background:repeating-linear-gradient(90deg,#6b7380 0 4px,transparent 4px 7px)"></i>الصحة الجسدية</span>' +
-      '</div>' +
-      '<div class="meters">' +
-      meter('محبة الله', r.mind.inputs.love) +
-      meter('الصحة الجسدية', r.mind.inputs.body) +
+      r.body.items.map(i => meter(i.label, i.ratio, `${i.label} · ${i.done} من ${i.target}`)).join('') +
       '</div>');
   }
 
+  const mindCard = (r, prev, n) => card('mind', 'الصحة النفسية',
+    hero(r.mind.value, prev && prev.mind.value) +
+    `<div class="plot" title="نصفُه محبة الله ونصفُه الصحة الجسدية">${lineSvg(r.mind.daily, n)}</div>` +
+    '<div class="meters">' +
+    meter('محبة الله', r.mind.inputs.love) +
+    meter('الصحة الجسدية', r.mind.inputs.body) +
+    '</div>');
+
   function studyCard(r, prev, n) {
     const s = r.study;
-    return card('study', 'مقياس المرونة الذهنية', 'المذاكرة: الإنجاز، والعودة بعد الانقطاع',
+    const note = 'التعافي: كم انقطاعًا تلاه «تم» في اليوم المكتوب التالي.';
+    return card('study', 'المرونة الذهنية',
       hero(s.value, prev && prev.study.value) +
-      `<div class="plot" data-ribbon="study">${ribbon(s.daily, n)}</div>` +
+      `<div class="plot strip" data-ribbon="study" title="${esc(note)}">${ribbon(s.daily, n)}</div>` +
       '<div class="pair">' +
-      `<div>الإنجاز<b>${s.achievement === null ? '—' : pct(s.achievement) + '%'}</b></div>` +
-      `<div>التعافي<b>${s.recovery === null ? '—' : pct(s.recovery) + '%'}</b></div>` +
-      `<div>أطول سلسلة<b>${s.longest}</b></div>` +
-      `<div>الانقطاعات<b>${s.breaks}</b></div>` +
-      '</div>' +
-      '<p class="fine">التعافي: كم انقطاعًا تلاه «تم» في اليوم المكتوب التالي. ' +
-      'آخرُ يومٍ مكتوبٍ لا يُحسب انقطاعًا غيرَ مُتعافًى منه، إذ لا يومَ بعده يُحكم به.</p>');
+      num('الإنجاز', s.achievement === null ? '—' : pct(s.achievement) + '%') +
+      num('التعافي', s.recovery === null ? '—' : pct(s.recovery) + '%') +
+      num('أطول سلسلة', s.longest) +
+      '</div>');
   }
 
   function gritCard(r, prev, n) {
-    const bars = r.grit.ranked.map((m, k) =>
-      meter(m.label, m.value, undefined, undefined, k === 0)).join('');
-    return card('grit', 'مقياس الصلابة والالتزام', `يومٌ ملتزم: بلغ فيه ${M.NEED} من ٤ مقاييس حدَّ ${pct(M.FLOOR)}٪`,
+    const bars = r.grit.ranked.map((m, k) => meter(m.label, m.value, m.label, k === 0)).join('');
+    return card('grit', 'الصلابة والالتزام',
       hero(r.grit.value, prev && prev.grit.value) +
       '<div class="pair">' +
-      `<div>أيامٌ ملتزمة<b>${r.grit.committed} / ${r.grit.written}</b></div>` +
-      `<div>أطول سلسلة<b>${r.grit.longest}</b></div>` +
-      `<div>الأضعف<b style="font-size:0.95rem">${r.grit.weakest ? esc(r.grit.weakest.label) : '—'}</b></div>` +
+      num('أيام ملتزمة', `${r.grit.committed} / ${r.grit.written}`) +
+      num('أطول سلسلة', r.grit.longest) +
+      num('الأضعف', r.grit.weakest ? r.grit.weakest.label : '—') +
       '</div>' +
-      `<div class="plot" data-ribbon="grit">${ribbon(r.grit.daily, n, true)}</div>` +
-      '<div class="meters">' + bars + '</div>' +
-      '<p class="fine">الأشرطة الأربعة مرتّبةٌ من الأضعف، والأضعفُ بلون الحياد: ' +
-      'السلسلة بقوّة أضعف حلقاتها، وهذه هي الحلقة.</p>');
+      `<div class="plot strip" data-ribbon="grit" title="يوم ملتزم: بلغ فيه ${M.NEED} من ٤ مقاييس حدّ ${pct(M.FLOOR)}٪">` +
+      `${ribbon(r.grit.daily, n, true)}</div>` +
+      `<div class="meters" title="مرتّبة من الأضعف. السلسلة بقوة أضعف حلقاتها">${bars}</div>`,
+      true);
   }
 
   // ============================================================
   // # 🚪 🖌️  PUTTING THE MONTH ON THE SCREEN
   // # 🔤 JavaScript
-  // # 🎯 Asks the engine for this month and the one before it, draws
+  // # 🎯 Asks the engine for this month and the one before, draws
   // #    the five cards, and hangs the hover on each
-  // # 🔗 The month before is fetched only so the change can be shown
-  // #    beside each figure. And a month with nothing written in it
-  // #    says so in one line instead of drawing five empty charts:
-  // #    an empty chart reads as a thing that broke
+  // # 🔗 The month before is fetched only for the change beside each
+  // #    figure. A month with nothing written says so in one line
+  // #    instead of drawing five empty charts: an empty chart reads
+  // #    as a thing that broke rather than a month not yet lived
   // ============================================================
   function render(year, month, host) {
     const days = B.read().days;
@@ -312,12 +311,12 @@
 
     const head = '<div class="mhead">' +
       `<h2>${MONTHS[month - 1]} ${year}</h2>` +
-      `<p class="sub">${r.written ? `${r.written} يومًا مكتوبًا` : 'لا يوم مكتوبًا'}` +
-      (r.sortingWrong.length ? ` · <b style="color:#d03b3b">فرزُ البنود مختلّ: ${r.sortingWrong.join(' ')}</b>` : '') +
+      `<p class="sub">${r.written ? `${r.written} يومًا` : 'لا يوم مكتوبًا'}` +
+      (r.sortingWrong.length ? ` · <b style="color:#d03b3b">فرز البنود مختلّ: ${r.sortingWrong.join(' ')}</b>` : '') +
       '</p></div>';
 
     if (!r.written) {
-      host.innerHTML = head + '<p class="empty-month">لا شيء مكتوبٌ في هذا الشهر بعد، فلا شيء يُقاس.</p>';
+      host.innerHTML = head + '<p class="empty-month">لا شيء مكتوبٌ في هذا الشهر بعد.</p>';
       return;
     }
 
@@ -325,11 +324,12 @@
       loveCard(r, prev, n) + bodyCard(r, prev, n) + mindCard(r, prev, n) +
       studyCard(r, prev, n) + gritCard(r, prev, n);
 
-    wireLine(host.querySelector('[data-line="love"] svg'), r.love.daily, n, 'محبة الله');
-    wireLine(host.querySelector('[data-line="body"] svg'), r.body.daily, n, 'الصحة الجسدية');
-    wireLine(host.querySelector('[data-line="mind"] svg'), r.mind.daily, n, 'الصحة النفسية');
+    const svgOf = id => host.querySelector(`.mcard[data-card="${id}"] .plot svg`);
+    wireLine(svgOf('love'), r.love.daily, n, 'محبة الله');
+    wireLine(svgOf('body'), r.body.daily, n, 'الصحة الجسدية');
+    wireLine(svgOf('mind'), r.mind.daily, n, 'الصحة النفسية');
     wireRibbon(host.querySelector('[data-ribbon="study"]'), { on: 'ذاكر', off: 'لم يذاكر', none: 'لم يُسجَّل' });
-    wireRibbon(host.querySelector('[data-ribbon="grit"]'), { on: 'يوم ملتزم', off: 'غير ملتزم', none: 'لم يُسجَّل' });
+    wireRibbon(host.querySelector('[data-ribbon="grit"]'), { on: 'ملتزم', off: 'غير ملتزم', none: 'لم يُسجَّل' });
   }
 
   window.CheckMeMetricsScreen = { render, HUE };
