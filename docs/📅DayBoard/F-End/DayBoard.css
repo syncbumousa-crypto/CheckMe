@@ -3,12 +3,11 @@
 /* # 🔤 CSS */
 /* # 🎯 Names every colour once, so the whole board can be re-tuned */
 /* #    from one place instead of hunting through rules */
-/* # 🔗 The ground is darker than the old flat gray on purpose. Thirty */
-/* #    squares a row is a lot of ink, and a done square has to carry */
-/* #    its own colour: on a mid gray it goes muddy, on a dark ground */
-/* #    it reads at a glance from across the room. Each group gets a */
-/* #    HUE, not a colour, and every state of that group is made from */
-/* #    it -- so a group can be re-coloured by one number */
+/* # 🔗 A square has three looks and no more: left alone, all green, */
+/* #    all red. An earlier version gave every group its own hue and */
+/* #    drew a struck through dash for a missed thing, which meant */
+/* #    seven colours and two shapes to learn before the board could */
+/* #    be read at all. Three flat answers need no learning */
 /* ============================================================ */
 :root {
   --ink: #eef1f5;
@@ -22,11 +21,10 @@
   --line-soft: #343a41;
 
   --cell-none: #2e333a;
-  --cell-miss: #322c31;
-  --miss-mark: #6a5a63;
+  --done: #2f9e63;
+  --miss: #b8433f;
 
   --today: #ffd479;
-  --radius: 7px;
 }
 
 /* ============================================================ */
@@ -36,160 +34,160 @@
 /* #    board can fill, and keeps a gutter at every width */
 /* # 🔗 shell.css centres the body with flex, which is right for a */
 /* #    panel of three buttons and wrong for a table a year wide: the */
-/* #    centring squeezes it and the sticky columns stop sticking. So */
+/* #    centring squeezes it and the pinned columns stop pinning. So */
 /* #    the body is turned back into a plain block HERE rather than in */
 /* #    the shell, because the panels still want the shell's centring */
 /* #    and they get it from the sheet rule further down */
 /* ============================================================ */
+/* `color-scheme` is the one line that makes the browser's OWN parts
+   dark: the scrollbars it draws for us, and the fields in the account
+   sheet. Without it a pale system bar sat down the side of a dark
+   board looking like a strip torn out of another page */
 body.has-board {
   display: block;
+  color-scheme: dark;
   background: var(--ground);
   color: var(--ink);
   min-height: 100%;
 }
 
+/* ============================================================ */
+/* # 🎚️ 🌑  THE BAR DOWN THE SIDE */
+/* # 🔤 CSS */
+/* # 🎯 Makes the grid's own scrollbar thin, dim and the colour of */
+/* #    the board it belongs to */
+/* # 🔗 Written twice because browsers disagree: the two `scrollbar-` */
+/* #    lines are the standard and Firefox obeys them, the `::-webkit` */
+/* #    rules are what Chrome reads. The thumb is painted through its */
+/* #    content box with a transparent border, which is the only way */
+/* #    to get a slim bar with room around it -- a plain narrow track */
+/* #    would sit tight against the grid and read as a column */
+/* ============================================================ */
+.grid-wrap {
+  scrollbar-width: thin;
+  scrollbar-color: #363b43 transparent;
+}
+
+.grid-wrap::-webkit-scrollbar { width: 12px; height: 12px; }
+.grid-wrap::-webkit-scrollbar-track { background: transparent; }
+.grid-wrap::-webkit-scrollbar-corner { background: transparent; }
+
+.grid-wrap::-webkit-scrollbar-thumb {
+  background: #363b43;
+  border: 3px solid transparent;
+  background-clip: content-box;
+  border-radius: 999px;
+}
+
+.grid-wrap::-webkit-scrollbar-thumb:hover {
+  background: #4a515b;
+  background-clip: content-box;
+}
+
 .board {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding-block: 14px 28px;
+  gap: 8px;
+  padding-block: 12px 46px;
   padding-inline: 16px;
   box-sizing: border-box;
 }
 
 /* ============================================================ */
-/* # 🔝 🧭  THE STRIP ABOVE THE GRID */
+/* # 🚫 🔝  NOTHING SITS ABOVE THE GRID */
 /* # 🔤 CSS */
-/* # 🎯 The year and its arrows, the share done so far, the twelve */
-/* #    month buttons, and the way in to the account */
-/* # 🔗 It wraps instead of scrolling, so on a phone the month buttons */
-/* #    fall onto their own lines and nothing is pushed off the edge. */
-/* #    The grid below is the only thing allowed to scroll sideways */
+/* # 🎯 The page is the board and the board starts at the top */
+/* # 🔗 There used to be a strip here carrying the year, its arrows, */
+/* #    twelve month buttons and the account. All of it is gone at the */
+/* #    owner's word: the grid is what he opens the page to see, and */
+/* #    every row of furniture above it was a row of days pushed off */
+/* #    the bottom. What those buttons did is not lost, it moved: the */
+/* #    word in the corner of the head goes to today, and the account */
+/* #    waits in the far corner where it is reached once and forgotten */
 /* ============================================================ */
-.board-top {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px 14px;
-}
-
-.year-nav {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.year-now {
-  font-size: 1.5rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  min-width: 4ch;
-  text-align: center;
-}
-
-.step {
-  font: inherit;
-  width: 32px;
-  height: 32px;
-  border: 1px solid var(--line);
-  border-radius: 50%;
-  background: var(--surface);
-  color: var(--ink);
-  cursor: pointer;
-  line-height: 1;
-}
-
-.step:hover { background: var(--surface-2); }
-
-.tally {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  padding: 6px 12px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: var(--surface);
-}
-
-.tally b { font-size: 1.1rem; }
-.tally span { font-size: 0.8rem; color: var(--ink-dim); }
-
-.months {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-inline-start: auto;
-}
-
-.month-chip {
-  font: inherit;
-  font-size: 0.8rem;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 10px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: var(--surface);
-  color: var(--ink-dim);
-  cursor: pointer;
-}
-
-.month-chip:hover { background: var(--surface-2); color: var(--ink); }
-.month-chip.is-now { border-color: var(--today); color: var(--ink); }
-.month-chip em { font-style: normal; color: var(--ink-faint); font-size: 0.72rem; }
 
 /* ============================================================ */
 /* # 📜 🪟  THE ONE THING THAT SCROLLS SIDEWAYS */
 /* # 🔤 CSS */
 /* # 🎯 Holds the grid, and lets it slide left and right inside its */
 /* #    own frame */
-/* # 🔗 Thirty squares plus the month, the day and the result cannot */
-/* #    fit a phone, and a page that scrolls sideways as a whole is */
-/* #    broken. So the sliding is penned in here, and the month and */
-/* #    day columns are pinned to the near edge so a row never loses */
-/* #    its name no matter how far the eye travels */
+/* # 🔗 Thirty columns wide enough to carry a whole written name
+       cannot fit any screen, so the sliding is penned in here and the */
+/* #    month and day columns are pinned to the near edge: a row never */
+/* #    loses its name no matter how far the eye travels, and the page */
+/* #    itself never scrolls sideways */
 /* ============================================================ */
 .grid-wrap {
   overflow: auto;
-  max-height: calc(100vh - 150px);
+  max-height: calc(100vh - 102px);
   border: 1px solid var(--line);
   border-radius: 12px;
   background: var(--surface);
 }
 
+/* Told, not measured. With the layout left on `auto` the table weighs
+   every one of eleven thousand cells and then hands each column the
+   widest thing it found, which made every column forty odd pixels for
+   a square that wanted thirty and pushed the grid off the screen.
+   `fixed` makes the `col` widths above the law, and it draws faster
+   besides, since nothing has to be weighed at all */
 table.year {
+  table-layout: fixed;
   border-collapse: separate;
   border-spacing: 0;
   font-size: 0.78rem;
 }
 
 /* ============================================================ */
-/* # 🧷 🧊  THE HEAD AND THE TWO PINNED COLUMNS */
+/* # 🧷 🧊  THE LADDER THAT DECIDES WHAT COVERS WHAT */
 /* # 🔤 CSS */
-/* # 🎯 Keeps the three head rows on top and the month and day columns */
-/* #    at the right while everything else slides under them */
-/* # 🔗 `right` is written out rather than the logical name because */
-/* #    the page is right to left and the near edge IS the right one, */
-/* #    and reading the rule should not need a second translation. */
-/* #    The pinned head cells need a background of their own or the */
-/* #    squares show through them, and a z-index ladder: the corner */
-/* #    where a pinned row crosses a pinned column must beat both */
+/* # 🎯 Keeps the three head rows on top, the month and day columns at */
+/* #    the right, and the corner where they cross above both */
+/* # 🔗 This ladder was upside down and it showed: the day column in */
+/* #    the BODY stood at four and the head row at three, so scrolling */
+/* #    painted day numbers straight over the head, and the `اليوم` box */
+/* #    in the corner was buried under them. A pinned thing needs a */
+/* #    number higher than everything it is meant to float above, and */
+/* #    the corner needs the highest of all because it is pinned twice. */
+/* #    `right` is written out rather than the logical name because the */
+/* #    page is right to left and the near edge IS the right one */
 /* ============================================================ */
 table.year thead th {
   position: sticky;
   top: 0;
-  z-index: 3;
+  z-index: 5;
   background: var(--surface-2);
   color: var(--ink-dim);
   font-weight: 600;
   padding: 5px 4px;
   border-bottom: 1px solid var(--line);
-  white-space: nowrap;
 }
 
-table.year thead tr:nth-child(2) th { top: 26px; }
-table.year thead tr:nth-child(3) th { top: 50px; }
+table.year thead tr:nth-child(2) th { top: 24px; }
+table.year thead tr:nth-child(3) th { top: 46px; }
+
+/* Centred in the cell it lives in, both ways. It was sat on the floor
+   of the cell for a while, to put it beside the first day; the owner
+   wants it in the middle of its own box instead, which is the plainer
+   rule and the one a reader can predict */
+table.year thead th.month, table.year thead th.day {
+  vertical-align: middle;
+  text-align: center;
+}
+
+/* Pressing the word in the corner goes to today. It is the one bit of
+   the head that does something, so it is the one bit that says so */
+th.day .jump {
+  font: inherit;
+  padding: 4px 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink-dim);
+  cursor: pointer;
+}
+
+th.day .jump:hover { border-color: var(--today); color: var(--today); }
 
 th.month, th.day {
   position: sticky;
@@ -198,68 +196,122 @@ th.month, th.day {
 }
 
 th.month { right: 0; width: 46px; }
-th.day { right: 46px; width: 104px; }
+th.day { right: 46px; width: 112px; }
 
-thead th.month, thead th.day, thead th.res-head {
-  z-index: 6;
+/* Written with the table in front of it on purpose. `thead th.day`
+   alone counts one class and two elements, which loses to the
+   `table.year thead th` rule above it on specificity, and the corner
+   silently kept the lower number instead of the eight asked for here.
+   It happened to still work, because five already beats the body's
+   four -- a rule that is right by luck is a rule that breaks when a
+   number nearby changes */
+table.year thead th.month, table.year thead th.day {
+  z-index: 8;
   background: var(--surface-2);
 }
 
 /* ============================================================ */
-/* # 🏷️ ✍️  HOW A COLUMN SAYS WHAT IT IS */
+/* # 🏷️ ✍️  EVERY COLUMN SAYS ITS WHOLE NAME */
 /* # 🔤 CSS */
-/* # 🎯 The group names, the band names under them, and the short item */
-/* #    labels under those */
-/* # 🔗 Each group is tinted with its own hue so the eye finds a group */
-/* #    before it reads a word. The item label is turned on its side: */
-/* #    a square is wide enough for one Arabic letter and no more, and */
-/* #    turning the word is the only way to keep a readable name over */
-/* #    a column this narrow without making the column wider than the */
-/* #    thing it describes */
+/* # 🎯 The group names, the band names under them, and the full item */
+/* #    name under those, standing on end and wrapped over as many */
+/* #    lines as it takes */
+/* # 🔗 The first version turned each name on its side and cut it to */
+/* #    one letter, to keep a column the width of a square. It saved */
+/* #    room and cost the only thing that mattered: the owner could */
+/* #    not read his own list. So the column is now as wide as the */
+/* #    NAME needs and the square stretches to match it. The grid got */
+/* #    wider than a screen, which is what the sideways scroll is for */
 /* ============================================================ */
-th.group {
-  font-size: 0.8rem;
+/* One hue down each group's whole block, three steps of it. The group
+   name is the loudest, the band under it is the same colour held
+   back, and the item names are the same colour again at reading
+   strength on a ground barely lifted off the table. Before this the
+   three rows were three unrelated looks -- a tinted group, a gray
+   band and plain white names -- so nothing told the eye that a column
+   of names belonged to the heading two rows above it. The hues are
+   also the only colour in the head, which is what keeps them telling:
+   the squares below are green and red and nothing else */
+table.year thead th.group {
+  font-size: 0.84rem;
+  font-weight: 700;
   letter-spacing: 0.01em;
-  color: hsl(var(--hue) 55% 72%) !important;
-  background: hsl(var(--hue) 30% 22%) !important;
+  color: hsl(var(--hue) 62% 78%);
+  background: hsl(var(--hue) 30% 25%);
   border-inline-start: 1px solid var(--line);
+  border-bottom: 1px solid hsl(var(--hue) 24% 32%);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-th.band {
-  font-size: 0.72rem;
-  color: var(--ink-faint);
+table.year thead th.band {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: hsl(var(--hue) 34% 62%);
+  background: hsl(var(--hue) 20% 19%);
   border-inline-start: 1px solid var(--line-soft);
+  border-bottom: 1px solid var(--line-soft);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-th.item {
-  height: 72px;
+table.year thead th.item {
+  background: hsl(var(--hue) 14% 16%);
+  width: 30px;
+  min-width: 30px;
+  /* Found by trying, not by guessing: at a hundred and ten every one
+     of the thirty names stands clear with room over it, and the head
+     stops at a hundred and fifty six pixels instead of two hundred and
+     sixteen, which is three more days of the month on screen */
+  height: var(--item-h, 110px);
   padding: 0;
   vertical-align: bottom;
   border-inline-start: 1px solid var(--line-soft);
 }
 
-th.item span {
-  display: inline-block;
-  transform: rotate(-90deg);
-  transform-origin: center;
-  white-space: nowrap;
-  font-size: 0.72rem;
-  color: var(--ink-dim);
+/* Standing up, and still the whole name. Turning the text was the
+   first design and it was right about the column and wrong about the
+   word: it cut `اذكار الصباح` down to `أذكار`, and a board whose head
+   has to be decoded is not a board. `writing-mode` is what turns the
+   LINE rather than each letter, so Arabic keeps its joins and its
+   right to left order; the half turn after it is what makes the line
+   climb from the bottom instead of hanging from the top. Wrapping is
+   left on, so the four longest names fold into two standing lines
+   rather than making every column in the table as tall as the worst
+   one of them */
+table.year thead th.item > span {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  height: 100%;
+  padding: 6px 2px;
+  box-sizing: border-box;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  white-space: normal;
+  overflow-wrap: anywhere;
+  font-size: 0.7rem;
+  font-weight: 500;
+  line-height: 1.25;
+  color: hsl(var(--hue) 28% 84%);
 }
 
-th.item.band-start { border-inline-start: 1px solid var(--line); }
-th.group.first, th.band.first, th.item.group-start { border-inline-start: 2px solid var(--line); }
+table.year thead th.item.band-start, table.year thead th.band.band-start { border-inline-start: 1px solid var(--line); }
+table.year thead th.item.group-start, table.year thead th.band.group-start, table.year thead th.group.group-start {
+  border-inline-start: 2px solid var(--line);
+}
 
 /* ============================================================ */
 /* # 🗓️ 📏  A ROW IS A DAY */
 /* # 🔤 CSS */
 /* # 🎯 The month block down the right, the date, the weekday, and the */
 /* #    line that marks today */
-/* # 🔗 The month name is written once for the whole month and turned */
-/* #    on its side, which is what the owner's sheet does with a */
-/* #    merged cell. Today is marked with a line down its near edge */
-/* #    rather than a filled row, because a filled row would fight */
-/* #    thirty coloured squares and lose */
+/* # 🔗 The month name is written once for the whole month, the way a */
+/* #    merged cell does it in the owner's own sheet. Today is marked */
+/* #    with a line down its near edge rather than a filled row, since */
+/* #    a filled row would fight thirty coloured squares and lose */
 /* ============================================================ */
 th.month {
   border-top: 2px solid var(--line);
@@ -267,14 +319,13 @@ th.month {
   font-size: 0.9rem;
 }
 
-/* The name travels with its month. The cell spans all thirty one
-   days, so once the eye is past the first week the label itself has
-   scrolled off the top and the column reads as a blank strip -- which
-   is the one thing this column exists not to be. Making the WORD
-   stick, rather than the cell, keeps it beside whatever day is being
-   looked at and hands it over the moment the next month arrives. The
-   offset is measured from the real head after drawing, not guessed,
-   because the head is three rows of different heights */
+/* The name travels with its month. The cell spans all thirty one days,
+   so once the eye is past the first week the label itself has scrolled
+   off the top and the column reads as a blank strip, which is the one
+   thing this column exists not to be. Making the WORD stick, rather
+   than the cell, keeps it beside whatever day is being looked at and
+   hands it over the moment the next month arrives. The offset is
+   measured from the real head after drawing, not guessed */
 th.month span {
   position: sticky;
   top: calc(var(--head-h, 140px) + 8px);
@@ -297,23 +348,37 @@ th.day i { font-style: normal; font-size: 0.72rem; }
 
 tr.is-today th.day { box-shadow: inset 3px 0 0 var(--today); }
 tr.is-today th.day b { color: var(--today); }
-tr.is-friday th.day i { color: hsl(158 45% 60%); }
 
 /* ============================================================ */
-/* # 🟩 ⬜  THE THREE ANSWERS A SQUARE CAN HOLD */
+/* # 📆 ➖  WHERE ONE WEEK ENDS */
 /* # 🔤 CSS */
-/* # 🎯 Done, missed, and never answered: three looks that are told */
-/* #    apart by fill, by mark and by edge, not by colour alone */
-/* # 🔗 Done is filled with its group's hue. Missed is a dim square */
-/* #    with a bar across it. Never answered is flat and empty. They */
-/* #    differ in SHAPE as well as colour, so the board still reads */
-/* #    for an eye that does not separate red from green, and so it */
-/* #    survives being printed or screenshotted in gray */
+/* # 🎯 Draws a line under every Friday, all the way across */
+/* # 🔗 The owner's week ends on Friday, so that is where the line */
+/* #    goes. It is drawn on the LAST day of the week rather than the */
+/* #    first of the next one, because a month can begin on any day: */
+/* #    a line hung on the first day would skip whichever week got */
+/* #    cut in half by the turn of the month. Every cell in the row */
+/* #    carries it, or the line would stop at the first square */
+/* ============================================================ */
+tr.is-friday th.day,
+tr.is-friday td.cell { border-bottom: 2px solid #4b525c; }
+tr.is-friday th.day i { color: hsl(196 40% 62%); }
+
+/* ============================================================ */
+/* # 🟩 🟥  THREE ANSWERS, THREE LOOKS, ONE COLOUR EACH */
+/* # 🔤 CSS */
+/* # 🎯 Left alone, all green, all red */
+/* # 🔗 Flat fills, edge to edge inside the cell. No hue per group, no */
+/* #    mark inside the square, no half states: the owner asked for a */
+/* #    square that is either as it was, or green, or red, and that is */
+/* #    all three rules say. The empty one still carries a faint inner */
+/* #    edge so an untouched grid reads as a grid and not as a void */
 /* ============================================================ */
 td.cell {
-  width: 26px;
+  width: 30px;
+  min-width: 30px;
   height: 22px;
-  padding: 1px;
+  padding: 2px;
   border-inline-start: 1px solid var(--line-soft);
   border-bottom: 1px solid var(--line-soft);
   cursor: pointer;
@@ -329,101 +394,93 @@ td.cell::after {
   height: 100%;
   border-radius: 4px;
   background: var(--cell-none);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
 }
 
-td.cell[data-v="1"]::after {
-  background: hsl(var(--hue) 58% 46%);
-  box-shadow: inset 0 0 0 1px hsl(var(--hue) 60% 62%);
-}
-
-/* A short dash lying down, not a bar standing up. The first try drew
-   an upright stripe in a strong mauve, and since most squares in a
-   real year are `not done`, the whole board read as a field of pink
-   with the done days lost inside it. The board has to be honest about
-   a missed thing and still let a done thing be the loudest mark on
-   the page, so the miss keeps its own unmistakable SHAPE -- a struck
-   through line -- and gives up its brightness */
-td.cell[data-v="0"]::after {
-  background-color: var(--cell-miss);
-  background-image: linear-gradient(var(--miss-mark), var(--miss-mark));
-  background-size: 44% 2px;
-  background-position: center;
-  background-repeat: no-repeat;
-}
+td.cell[data-v="1"]::after { background: var(--done); box-shadow: none; }
+td.cell[data-v="0"]::after { background: var(--miss); box-shadow: none; }
 
 td.cell:hover::after { outline: 2px solid var(--ink-dim); outline-offset: -1px; }
 td.cell:focus-visible { outline: none; }
 td.cell:focus-visible::after { outline: 2px solid var(--today); outline-offset: -1px; }
 
 /* ============================================================ */
-/* # 🧮 📊  THE RESULT OF THE DAY */
-/* # 🔤 CSS */
-/* # 🎯 How many of the thirty, and the same thing again as a share */
-/* #    and as a bar */
-/* # 🔗 The number and the share are both shown because the owner's */
-/* #    own sheet shows both, and the bar is added because a column of */
-/* #    bars is the one thing in the row that can be read without */
-/* #    reading: a good week and a bad week have different shapes */
-/* ============================================================ */
-/* Read left to right, inside a page that reads right to left. `6 / 30`
-   dropped into Arabic text comes out of the bidi rules as `30 / 6`,
-   and the day the owner did six things out of thirty showed as thirty
-   out of six. The screenshot is what caught it. Turning the direction
-   round for this one cell, and walling it off so the change cannot
-   leak into the Arabic beside it, is what puts the numerator back in
-   front of the slash */
-td.res {
-  padding: 0 8px;
-  border-inline-start: 2px solid var(--line);
-  border-bottom: 1px solid var(--line-soft);
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
-  color: var(--ink-dim);
-  direction: ltr;
-  unicode-bidi: isolate;
-  text-align: end;
-}
-
-td.res b { color: var(--ink); }
-
-td.bar {
-  width: 70px;
-  padding: 0 8px 0 0;
-  border-bottom: 1px solid var(--line-soft);
-}
-
-td.bar div {
-  height: 7px;
-  border-radius: 999px;
-  background: hsl(158 50% 45%);
-  min-width: 2px;
-}
-
-/* ============================================================ */
 /* # 🔑 🪟  THE ACCOUNT, OUT OF THE WAY */
 /* # 🔤 CSS */
 /* # 🎯 Puts the sign in panels and the Drive panels in a sheet over */
 /* #    the board, and gives the strip above a button that opens it */
-/* # 🔗 The board is the home screen now, so the account cannot be the */
+/* # 🔗 The board is the home screen, so the account cannot be the */
 /* #    first thing the page shows. The panels themselves are not */
 /* #    touched: they keep their ids and their own file keeps driving */
 /* #    them. This only decides WHERE they appear, and brings back the */
 /* #    centring that the body gave up for the grid */
 /* ============================================================ */
-.who-btn {
+/* Parked in the far bottom corner. It is pressed once, on the day the
+   account is linked, and then it is only a light saying the year is
+   safe -- so it belongs where a light belongs and not across the top
+   of the thing it reports on */
+/* ============================================================ */
+/* # 🧰 📐  THE DOCK, AND THE ORDER THINGS SIT IN IT */
+/* # 🔤 CSS */
+/* # 🎯 Pins the row of buttons along the bottom, starting at the */
+/* #    physical right and running left */
+/* # 🔗 `right`, written out, and not the logical name. The page runs */
+/* #    right to left, so `inline-end` is the LEFT edge here, and */
+/* #    asking for the end once put the account button in the corner */
+/* #    opposite the one asked for. And a plain `row` is ALREADY */
+/* #    right to left on this page, so the first child lands on the */
+/* #    right of its own accord -- `row-reverse` flipped it back and */
+/* #    sent the account button across the screen a second time. The */
+/* #    WRAP is reversed though, so that when the months run out of */
+/* #    room the extra line climbs upward instead of falling off the */
+/* #    bottom edge the dock is pinned to */
+/* ============================================================ */
+.dock {
+  position: fixed;
+  bottom: 9px;
+  right: 14px;
+  left: 14px;
+  z-index: 15;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap-reverse;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 6px;
+  pointer-events: none;
+}
+
+.dock > *, .dock-months > * { pointer-events: auto; }
+
+.dock-months {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap-reverse;
+  gap: 5px;
+}
+
+.who-btn, .dock-btn, .month-btn {
   font: inherit;
-  font-size: 0.8rem;
-  padding: 6px 12px;
+  font-size: 0.78rem;
+  padding: 6px 13px;
   border: 1px solid var(--line);
   border-radius: 999px;
   background: var(--surface);
   color: var(--ink-dim);
   cursor: pointer;
+  white-space: nowrap;
 }
+
+.dock-btn:hover, .month-btn:hover { background: var(--surface-2); color: var(--ink); }
+
+.month-btn { padding: 5px 11px; font-size: 0.74rem; }
+.month-btn.is-now { border-color: var(--today); color: var(--today); }
+
+.dock-btn { color: var(--ink); }
 
 .who-btn:hover { background: var(--surface-2); color: var(--ink); }
 .who-btn.is-off { border-color: hsl(38 60% 50%); color: hsl(38 70% 72%); }
+.who-btn.is-synced { border-color: var(--done); color: hsl(152 45% 68%); }
 
 #account-sheet {
   position: fixed;
@@ -459,51 +516,19 @@ td.bar div {
 }
 
 /* ============================================================ */
-/* # 📖 🗝️  THE LEGEND */
+/* # 🚫 📖  NO KEY UNDER THE GRID */
 /* # 🔤 CSS */
-/* # 🎯 Spells out the three squares, and lists every group with its */
-/* #    items in full words */
-/* # 🔗 The grid shortens every name to fit a narrow column, so the */
-/* #    full ones have to live somewhere on the page. Tooltips alone */
-/* #    would not do: a phone has no hover */
+/* # 🎯 The three swatches and their words are gone */
+/* # 🔗 Taken out at the owner's word, and it costs nothing here: */
+/* #    green and red are HIS marks, written by his own hand square by */
+/* #    square. A key explains a code a reader did not choose. This is */
+/* #    not one of those */
 /* ============================================================ */
-.legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px 22px;
-  font-size: 0.76rem;
-  color: var(--ink-dim);
-}
-
-.legend-group { max-width: 260px; }
-.legend-group h4 {
-  margin: 0 0 3px;
-  font-size: 0.78rem;
-  color: hsl(var(--hue) 55% 72%);
-}
-
-.keys { display: flex; gap: 14px; align-items: center; }
-.keys i {
-  display: inline-block;
-  width: 14px;
-  height: 14px;
-  border-radius: 4px;
-  vertical-align: -2px;
-  margin-inline-end: 5px;
-}
-
-.keys .k-done { background: hsl(158 58% 46%); }
-.keys .k-miss {
-  background:
-    linear-gradient(to left, transparent 42%, var(--miss-mark) 42%, var(--miss-mark) 58%, transparent 58%),
-    var(--cell-miss);
-}
-.keys .k-none { background: var(--cell-none); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08); }
 
 /* ============================================================ */
 /* # 📱 🤏  ON A SMALL SCREEN */
 /* # 🔤 CSS */
-/* # 🎯 Shrinks the squares and the pinned columns so a phone still */
+/* # 🎯 Shrinks the columns and the pinned day column so a phone still */
 /* #    shows a useful slice of the row */
 /* # 🔗 Only sizes are touched, never whether a thing is there: a rule */
 /* #    that hides half the board on a narrow screen would make the */
@@ -512,22 +537,8 @@ td.bar div {
 /* ============================================================ */
 @media (max-width: 760px) {
   .board { padding-inline: 10px; }
-  .grid-wrap { max-height: calc(100vh - 210px); }
-  td.cell { width: 22px; height: 20px; }
-  th.day { width: 78px; }
+  .grid-wrap { max-height: calc(100vh - 102px); }
+  td.cell, th.item { width: 26px; min-width: 26px; }
+  th.day { width: 84px; }
   th.day b { font-size: 0.78rem; }
-  td.bar { display: none; }
-  .months { margin-inline-start: 0; }
-}
-
-/* ============================================================ */
-/* # 0️⃣ ➖  THE DASH OF A DAY NOT OPENED */
-/* # 🔤 CSS */
-/* # 🎯 Dims the dash that stands where a result would be on a day */
-/* #    that holds no answer */
-/* # 🔗 It has to be fainter than a real result, or three hundred */
-/* #    empty days would read as loudly as the days that were lived */
-/* ============================================================ */
-td.res .none {
-  color: var(--ink-faint);
 }

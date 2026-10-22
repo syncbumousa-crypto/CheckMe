@@ -165,20 +165,66 @@
   const me = async () => (await db().auth.getUser()).data.user;
   const now = () => new Date().toISOString();
 
+  // ============================================================
+  // # 🏠 🗄️  THE POINTER IS KEPT TWICE, AND THE DATABASE MAY SAY NO
+  // # 🔤 JavaScript
+  // # 🎯 Remembers where the file is in this browser as well as in the
+  // #    database, and keeps hold of the reason when the database
+  // #    refuses
+  // # 🔗 Written after watching it fail without a sound. The table had
+  // #    not been created yet, so the row could not be saved, so the
+  // #    next visit found no pointer and offered to LINK AGAIN -- and
+  // #    would have made a second file in Drive beside the first, with
+  // #    nothing anywhere saying why. Two fixes in one: the browser
+  // #    keeps its own copy, so one device works the moment Drive is
+  // #    linked and before any table exists; and the refusal is kept
+  // #    instead of dropped, so the screen can say it out loud. The
+  // #    table is still what carries the pointer BETWEEN devices, and
+  // #    it is still read first -- the local copy is the fallback,
+  // #    never the master, or a second laptop would never catch up
+  // ============================================================
+  const PLACE = 'checkme.place';
+  let trouble = '';
+
+  const localPlace = {
+    read: () => { try { return JSON.parse(localStorage.getItem(PLACE) || 'null'); } catch { return null; } },
+    write: p => { try { localStorage.setItem(PLACE, JSON.stringify(p)); } catch {} },
+    clear: () => { try { localStorage.removeItem(PLACE); } catch {} }
+  };
+
   const loadProfile = async () => {
+    trouble = '';
     const user = await me();
-    return user ? (await db().from(TABLE).select('*').eq('id', user.id).maybeSingle()).data : null;
+    if (!user) return null;
+    const answer = await db().from(TABLE).select('*').eq('id', user.id).maybeSingle();
+    if (answer.error) {
+      trouble = answer.error.message;
+      return localPlace.read();
+    }
+    if (answer.data && answer.data.drive_file_id) return answer.data;
+    return localPlace.read();
   };
 
   const savePlace = async (name, fileId) => {
+    localPlace.write({ drive_folder_name: name, drive_file_id: fileId });
+    trouble = '';
     const user = await me();
-    if (user) await db().from(TABLE).upsert({ id: user.id, drive_folder_name: name, drive_file_id: fileId, updated_at: now() });
+    if (!user) return;
+    const answer = await db().from(TABLE)
+      .upsert({ id: user.id, drive_folder_name: name, drive_file_id: fileId, updated_at: now() });
+    if (answer.error) trouble = answer.error.message;
   };
 
   const forgetPlace = async () => {
+    localPlace.clear();
     const user = await me();
-    if (user) await db().from(TABLE).update({ drive_folder_name: null, drive_file_id: null, updated_at: now() }).eq('id', user.id);
+    if (!user) return;
+    const answer = await db().from(TABLE)
+      .update({ drive_folder_name: null, drive_file_id: null, updated_at: now() }).eq('id', user.id);
+    if (answer.error) trouble = answer.error.message;
   };
+
+  const placeTrouble = () => trouble;
 
   window.CheckMeCloud = {
     FOLDER, now,
@@ -188,6 +234,6 @@
     askGoogle,
     findOrMakeFolder, createFile, fileAlive, readFile, writeFile,
     pickFolder, probePicker,
-    loadProfile, savePlace, forgetPlace
+    loadProfile, savePlace, forgetPlace, placeTrouble
   };
 })();

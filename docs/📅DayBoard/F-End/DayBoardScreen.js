@@ -1,14 +1,14 @@
 // ============================================================
 // # 🗓️ 🖥️  THE YEAR ON ONE SCREEN
 // # 🔤 JavaScript
-// # 🎯 Everything the visitor sees of the board: the strip on top, the
-// #    twelve months of day rows, the squares, and the result of each
-// #    day. Clicking a square turns it, and the page saves itself
+// # 🎯 Everything the visitor sees of the board: the strip on top and
+// #    the twelve months of day rows. Clicking a square turns it, the
+// #    page saves itself, and the year rides up to the owner's Drive
 // # 🔗 All the knowing lives in the store file: what the thirty things
-// #    are, how a day is written down, and how it is counted. This
-// #    file only draws them and hands clicks back. The names here sit
-// #    inside one wrapper, so nothing of it can clash with the account
-// #    files that load before it
+// #    are, how a day is written down, how it is counted, and how it
+// #    travels to Drive. This file only draws them and hands clicks
+// #    back. The names here sit inside one wrapper, so nothing of it
+// #    can clash with the account files that load before it
 // ============================================================
 (() => {
   const B = window.CheckMeDayBoard;
@@ -33,7 +33,8 @@
 
   let year = nowLocal.getFullYear();
   let board = B.read();
-  let saveTimer = null;
+  let place = null;
+  let saveTimer = null, pushTimer = null;
 
   // ============================================================
   // # 🧱 🏷️  THE BANDS INSIDE A GROUP
@@ -59,12 +60,21 @@
   });
 
   const hueStyle = () => {
-    const css = layout.map(g =>
-      `.g-${g.id} { --hue: ${g.hue}; }`).join('\n');
     const tag = document.createElement('style');
-    tag.textContent = css;
+    tag.textContent = layout.map(g => `.g-${g.id} { --hue: ${g.hue}; }`).join('\n');
     document.head.appendChild(tag);
   };
+
+  const edgeOf = (() => {
+    const marks = [];
+    layout.forEach((g, gi) => g.bands.forEach((b, bi) => b.items.forEach((it, ii) => {
+      marks[it.i] = ii === 0 ? (bi === 0 ? ' group-start' : ' band-start') : '';
+    })));
+    return i => marks[i] || '';
+  })();
+
+  const groupOf = B.ITEMS.map(it => it.g);
+  const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
 
   // ============================================================
   // # 🏗️ 🧾  BUILDING THE GRID AS TEXT
@@ -77,42 +87,68 @@
   // #    making them one at a time is the difference between a page
   // #    that opens and a page that hangs. Each cell carries its date
   // #    and its place in the day, so a click knows what it touched
-  // #    without the code holding a map of eleven thousand things
+  // #    without the code holding a map of eleven thousand things.
+  // #    There is no result column: the owner asked for the score to
+  // #    live behind the page, and it does -- `CheckMeDayBoard.score`
+  // #    works it out from the day whenever anything needs it, so
+  // #    nothing is stored twice and nothing can fall out of step
   // ============================================================
-  const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+  // ============================================================
+  // # 📏 🪚  THE COLUMNS ARE TOLD THEIR WIDTH, NOT ASKED
+  // # 🔤 JavaScript
+  // # 🎯 Writes one `col` per column with a width worked out from how
+  // #    much room the group name needs over the columns it spans
+  // # 🔗 Without this the table measures its own contents and every
+  // #    column came out forty odd pixels instead of thirty, which
+  // #    pushed the grid past the edge of the screen for no reason the
+  // #    eye could see. The widest demand is never a square -- it is a
+  // #    GROUP NAME stretched over its columns, and a group of one
+  // #    column has to carry its whole name alone. So each group is
+  // #    asked what it needs, divided by how many columns it has, and
+  // #    nothing is wider than it must be
+  // ============================================================
+  const MONTH_W = 46, DAY_W = 104;
+
+  const colWidths = (() => {
+    const per = g => Math.max(30, Math.ceil((g.label.length * 7 + 16) / g.items.length));
+    const out = [];
+    layout.forEach(g => g.items.forEach(() => out.push(per(g))));
+    return out;
+  })();
+
+  // The table is given the sum as its own width. The `col` widths plus
+  // `table-layout: fixed` ought to be enough on their own, and they
+  // were not: the table went on drawing itself two hundred pixels
+  // wider than the columns it contains, because a table whose width is
+  // `auto` is free to decide, and it decided from the contents the
+  // fixed layout was supposed to stop it reading. Told a number, it
+  // has nothing left to decide
+  const TABLE_W = MONTH_W + DAY_W + colWidths.reduce((a, b) => a + b, 0);
+
+  const columns = () =>
+    `<colgroup><col style="width:${MONTH_W}px"><col style="width:${DAY_W}px">` +
+    colWidths.map(w => `<col style="width:${w}px">`).join('') + '</colgroup>';
 
   function head() {
-    let r1 = '<tr><th class="month" rowspan="3"></th><th class="day" rowspan="3">اليوم</th>';
+    let r1 = '<tr><th class="month" rowspan="3"></th>' +
+      '<th class="day" rowspan="3"><button class="jump" type="button" id="go-today" ' +
+      'title="اذهب إلى يومك">اليوم</button></th>';
     let r2 = '<tr>';
     let r3 = '<tr>';
 
-    layout.forEach((g, gi) => {
-      const first = gi === 0 ? ' first' : '';
-      r1 += `<th class="group g-${g.id}${first}" colspan="${g.items.length}">${esc(g.label)}</th>`;
-      g.bands.forEach((b, bi) => {
-        const edge = gi === 0 && bi === 0 ? ' first' : '';
-        r2 += `<th class="band g-${g.id}${edge}" colspan="${b.items.length}">${esc(b.sub)}</th>`;
+    layout.forEach(g => {
+      r1 += `<th class="group g-${g.id} group-start" colspan="${g.items.length}">${esc(g.label)}</th>`;
+      g.bands.forEach(b => {
+        r2 += `<th class="band g-${g.id}${edgeOf(b.items[0].i)}" colspan="${b.items.length}">` +
+          `${esc(b.sub)}</th>`;
         b.items.forEach(it => {
-          r3 += `<th class="item g-${g.id}${edgeOf(it.i)}" title="${esc(it.label)}">` +
-            `<span>${esc(it.short)}</span></th>`;
+          r3 += `<th class="item g-${g.id}${edgeOf(it.i)}"><span>${esc(it.label)}</span></th>`;
         });
       });
     });
 
-    r1 += '<th class="res-head" colspan="2" rowspan="3">نتيجة اليوم</th>';
-    return `<thead>${r1}</tr>${r2}</tr>${r3}</tr></thead>`;
+    return columns() + `<thead>${r1}</tr>${r2}</tr>${r3}</tr></thead>`;
   }
-
-  const edgeOf = (() => {
-    const marks = [];
-    layout.forEach((g, gi) => g.bands.forEach((b, bi) => b.items.forEach((it, ii) => {
-      marks[it.i] = ii === 0 ? (bi === 0 ? ' group-start' : ' band-start') : '';
-      if (gi === 0 && bi === 0 && ii === 0) marks[it.i] = ' group-start';
-    })));
-    return i => marks[i] || '';
-  })();
-
-  const groupOf = B.ITEMS.map(it => it.g);
 
   function dayRow(y, m, d) {
     const date = key(y, m, d);
@@ -127,35 +163,8 @@
     }
 
     return `<tr class="row${flags}" data-d="${date}">` +
-      `<th class="day"><b>${d}</b> <i>${DAYS[w]}</i></th>${cells}` +
-      `<td class="res">${resText(line)}</td>` +
-      `<td class="bar">${barHtml(line)}</td></tr>`;
+      `<th class="day"><b>${d}</b> <i>${DAYS[w]}</i></th>${cells}</tr>`;
   }
-
-  // ============================================================
-  // # 🚫 0️⃣  A DAY NEVER OPENED IS NOT A DAY OF NOUGHT
-  // # 🔤 JavaScript
-  // # 🎯 Writes the result of a day, or a dash when the day holds no
-  // #    answer at all
-  // # 🔗 This was wrong on the first run and the measuring caught it:
-  // #    an untouched day read `0 / 30 · 0%`, which says the day was
-  // #    lived and nothing was done. The owner's own sheet leaves such
-  // #    a row blank, and three hundred empty days all claiming nought
-  // #    per cent would drown the days that really were nought. The
-  // #    bar is emptied too, or the dash would sit beside a bar
-  // ============================================================
-  const resText = line =>
-    line === B.blank()
-      ? '<span class="none">—</span>'
-      : (s => `<b>${s.done}</b> / ${s.total}<span class="pct"> · ${s.pct}%</span>`)(B.score(line));
-
-  // The bar is not drawn at all on an untouched day. Drawing it at
-  // nought still leaves a mark, because a bar that can reach zero
-  // needs a floor to stay visible at one out of thirty -- and that
-  // floor was showing a two pixel green tick on three hundred days
-  // nobody had opened
-  const barHtml = line =>
-    line === B.blank() ? '' : `<div style="width:${B.score(line).pct}%"></div>`;
 
   function monthBlock(y, m) {
     const n = lengthOf(y, m);
@@ -167,70 +176,52 @@
     return `<tbody id="m-${m}" data-m="${m}">${withMonth}</tbody>`;
   }
 
-  function grid() {
+  const grid = () => {
     let html = head();
     for (let m = 1; m <= 12; m++) html += monthBlock(year, m);
-    return `<table class="year">${html}</table>`;
-  }
-
-  // ============================================================
-  // # 🧮 🔁  WHAT CHANGES WHEN ONE SQUARE CHANGES
-  // # 🔤 JavaScript
-  // # 🎯 Turns the square, rewrites that day's result, that month's
-  // #    share and the year's share, then saves
-  // # 🔗 Only the four places that actually moved are rewritten. The
-  // #    plain way would be to draw the year again, and drawing eleven
-  // #    thousand cells on every click would make a board that fights
-  // #    back. Saving waits a moment after the last click, because a
-  // #    morning of ticking is thirty clicks and the whole year would
-  // #    otherwise be written out thirty times
-  // ============================================================
-  const monthShare = m => {
-    const n = lengthOf(year, m);
-    let done = 0, filled = 0;
-    for (let d = 1; d <= n; d++) {
-      const line = board.days[key(year, m, d)];
-      if (!line || line === B.blank()) continue;
-      filled++;
-      done += B.score(line).done;
-    }
-    return { pct: filled ? Math.round((done / (filled * B.N)) * 100) : 0, filled };
+    return `<table class="year" style="width:${TABLE_W}px">${html}</table>`;
   };
 
-  function paintMonthChip(m) {
-    const chip = $(`chip-${m}`);
-    if (!chip) return;
-    const s = monthShare(m);
-    chip.querySelector('em').textContent = s.filled ? `${s.pct}%` : '—';
-  }
+  // ============================================================
+  // # 💾 ☁️  SAVING HERE, THEN SAVING THERE
+  // # 🔤 JavaScript
+  // # 🎯 Writes every change into this browser at once, and up into
+  // #    the Drive file a few seconds later
+  // # 🔗 Two waits, not one, and they are different lengths on
+  // #    purpose. The browser write is cheap, so it only waits long
+  // #    enough to let a burst of clicks settle. The Drive write
+  // #    crosses the network and rewrites the whole year, so it waits
+  // #    longer: a morning of ticking is thirty clicks, and thirty
+  // #    uploads of the same file would be thirty chances to collide
+  // #    with each other. Nothing is lost by waiting, because the
+  // #    browser copy is already safe before the first second passes
+  // ============================================================
+  const badge = state => {
+    const btn = $('who-btn');
+    if (!btn) return;
+    btn.classList.toggle('is-off', state === 'out');
+    btn.classList.toggle('is-synced', state === 'drive');
+    btn.textContent =
+      state === 'drive' ? 'محفوظ في درايفك' :
+      state === 'out' ? 'اربط حسابك ودرايفك' : 'على هذا الجهاز فقط';
+  };
 
-  function paintYear() {
-    let done = 0, filled = 0;
-    for (const [date, line] of Object.entries(board.days)) {
-      if (!date.startsWith(`${year}-`)) continue;
-      filled++;
-      done += B.score(line).done;
-    }
-    $('tally-done').textContent = done;
-    $('tally-days').textContent = filled ? `من ${filled * B.N} في ${filled} يومًا مُدخَلًا` : 'لا شيء مُدخَل بعد';
-  }
-
-  function paintDay(date) {
-    const row = document.querySelector(`tr.row[data-d="${date}"]`);
-    if (!row) return;
-    const line = board.days[date] || B.blank();
-    row.querySelector('td.res').innerHTML = resText(line);
-    const bar = row.querySelector('td.bar');
-    if (bar) bar.innerHTML = barHtml(line);
-  }
+  const say = text => { const n = $('board-note'); if (n) n.textContent = text; };
 
   const save = () => {
     clearTimeout(saveTimer);
     saveTimer = setTimeout(() => {
-      const ok = B.write(board);
-      const note = $('board-note');
-      if (note) note.textContent = ok ? '' : 'لم يُحفَظ: متصفّحك يمنع التخزين لهذا الموقع.';
-    }, 400);
+      if (!B.write(board)) say('لم يُحفَظ: متصفّحك يمنع التخزين لهذا الموقع.');
+    }, 300);
+
+    if (!place) return;
+    clearTimeout(pushTimer);
+    pushTimer = setTimeout(async () => {
+      try {
+        const n = await B.push(place.drive_file_id);
+        say(`حُفظ في درايفك: ${n} يومًا.`);
+      } catch (e) { say('تعذّر الحفظ في درايف: ' + e.message); }
+    }, 2500);
   };
 
   function turn(cell) {
@@ -240,9 +231,6 @@
     const updated = B.put(line, i, value);
     if (updated === B.blank()) delete board.days[date]; else board.days[date] = updated;
     cell.dataset.v = value;
-    paintDay(date);
-    paintMonthChip(Number(date.slice(5, 7)));
-    paintYear();
     save();
   }
 
@@ -255,8 +243,8 @@
   // #    other way would hang eleven thousand listeners on the page.
   // #    The arrows matter more than they look: a day is thirty
   // #    squares in a row, and filling it by aiming the mouse thirty
-  // #    times at a box twenty six pixels wide is a worse evening than
-  // #    holding the arrow and tapping the space bar
+  // #    times is a worse evening than holding the arrow and tapping
+  // #    the space bar
   // ============================================================
   function wireGrid(wrap) {
     const table = wrap.querySelector('table.year');
@@ -286,10 +274,8 @@
 
       const vert = { ArrowDown: 1, ArrowUp: -1 }[e.key];
       if (vert !== undefined) {
-        const row = cell.closest('tr');
         const rows = [...table.querySelectorAll('tr.row')];
-        const at = rows.indexOf(row) + vert;
-        const to = rows[at]?.querySelector(`td.cell[data-i="${i}"]`);
+        const to = rows[rows.indexOf(cell.closest('tr')) + vert]?.querySelector(`td.cell[data-i="${i}"]`);
         if (to) { e.preventDefault(); to.focus(); }
       }
     });
@@ -299,125 +285,136 @@
   }
 
   // ============================================================
-  // # 🧭 🔝  THE STRIP, AND GETTING TO A MONTH
+  // # 🎯 📍  BRINGING A ROW OUT FROM UNDER THE HEAD
   // # 🔤 JavaScript
-  // # 🎯 Draws the year arrows, the running total, the twelve month
-  // #    buttons and the legend, and scrolls the grid where asked
-  // # 🔗 Twelve buttons are drawn whether or not a month holds
-  // #    anything, because the owner asked for all the months of the
-  // #    year to be there. An empty month shows a dash instead of a
-  // #    share, which is a different thing from nought per cent and
-  // #    has to look different
+  // # 🎯 Scrolls the grid so a given element sits just below the three
+  // #    frozen head rows instead of behind them
+  // # 🔗 Measured from where things actually ARE on screen, not from
+  // #    `offsetTop`. A row's offsetTop is counted from whichever
+  // #    ancestor happens to be positioned, which is not the scrolling
+  // #    box here, so it only looked right while the box happened to
+  // #    sit near the top of the page. Subtracting the head is the
+  // #    whole point: a frozen head floats OVER the grid, so a row
+  // #    scrolled to the top of the box lands underneath it unseen
   // ============================================================
-  function chips() {
-    return MONTHS.map((name, k) =>
-      `<button class="month-chip" type="button" id="chip-${k + 1}" data-m="${k + 1}">` +
-      `${name} <em>—</em></button>`).join('');
+  function bring(el, smooth) {
+    const wrap = $('grid-wrap');
+    if (!wrap || !el) return;
+    const headH = wrap.querySelector('thead').getBoundingClientRect().height;
+    const offset = el.getBoundingClientRect().top - wrap.getBoundingClientRect().top;
+    wrap.scrollTo({ top: wrap.scrollTop + offset - headH - 8, behavior: smooth ? 'smooth' : 'auto' });
   }
 
-  function legend() {
-    const keys = '<div class="keys">' +
-      '<span><i class="k-done"></i>تم</span>' +
-      '<span><i class="k-miss"></i>ماش</span>' +
-      '<span><i class="k-none"></i>لم يُسجَّل</span>' +
-      '</div>';
-    const groups = layout.map(g =>
-      `<div class="legend-group g-${g.id}"><h4>${esc(g.label)}</h4>` +
-      g.items.map(it => esc(it.label)).join(' · ') + '</div>').join('');
-    return keys + groups;
-  }
-
-  function scrollToMonth(m, smooth) {
-    const wrap = $('grid-wrap'), body = $(`m-${m}`);
-    if (!wrap || !body) return;
-    const top = body.offsetTop - wrap.querySelector('thead').offsetHeight - 6;
-    wrap.scrollTo({ top, behavior: smooth ? 'smooth' : 'auto' });
-    [...document.querySelectorAll('.month-chip')].forEach(c =>
-      c.classList.toggle('is-now', Number(c.dataset.m) === m));
-  }
+  const goToToday = smooth => bring(document.querySelector(`tr.row[data-d="${TODAY}"]`), smooth);
 
   function draw() {
-    $('year-now').textContent = year;
     const wrap = $('grid-wrap');
     wrap.innerHTML = grid();
 
     // Measured, not guessed: the three head rows are different heights
-    // and the turned item labels decide the tallest one. The month name
+    // and the wrapped item names decide the tallest one. The month name
     // sticks just under whatever that comes to
-    const head = wrap.querySelector('thead');
-    wrap.style.setProperty('--head-h', `${Math.round(head.getBoundingClientRect().height)}px`);
+    const headBox = wrap.querySelector('thead');
+    wrap.style.setProperty('--head-h', `${Math.round(headBox.getBoundingClientRect().height)}px`);
 
     wireGrid(wrap);
-    for (let m = 1; m <= 12; m++) paintMonthChip(m);
-    paintYear();
+    $('go-today').onclick = () => goToToday(true);
+  }
+
+  // ============================================================
+  // # ☁️ 🤝  FINDING THE FILE, AND BRINGING THE YEAR DOWN
+  // # 🔤 JavaScript
+  // # 🎯 Works out whether there is a live Drive file to use, pulls
+  // #    what is in it into the board, and pushes back what this
+  // #    device knows that it did not
+  // # 🔗 Three things have to be true and each is CHECKED, not hoped
+  // #    for: a Google permission that has not expired, a remembered
+  // #    place, and a file still sitting where the place says. The
+  // #    owner may move, bin or delete his own file at any time, so a
+  // #    remembered id is a claim and `fileAlive` is the proof. The
+  // #    push after the pull is what carries a year typed before the
+  // #    link ever existed up into the account on the first visit
+  // ============================================================
+  async function connectDrive() {
+    const C = window.CheckMeCloud;
+    place = null;
+
+    if (!window.checkMeSignedIn) return badge('out');
+    if (!C.remember()) { badge('local'); return say('درايف غير مربوط الآن. افتح الحساب واضغط تسجيل الدخول.'); }
+
+    const found = await C.loadProfile().catch(() => null);
+    const bad = C.placeTrouble ? C.placeTrouble() : '';
+    if (!found || !found.drive_file_id) {
+      badge('local');
+      return say(bad ? 'قاعدة البيانات ردّت: ' + bad : 'لم تُحدَّد بعد مكان الحفظ في درايف.');
+    }
+
+    if (!(await C.fileAlive(found.drive_file_id).catch(() => false))) {
+      badge('local');
+      return say('ملفّك في درايف غير موجود. افتح الحساب واختر مكانًا جديدًا.');
+    }
+
+    place = found;
+    try {
+      const got = await B.pull(place.drive_file_id);
+      board = B.read();
+      draw();
+      goToToday(false);
+      const n = await B.push(place.drive_file_id);
+      badge('drive');
+      say(`متّصل بدرايفك: ${got.inFile} يومًا في الملفّ، و${n} يومًا بعد الدمج.` +
+        (bad ? ' (المؤشّر محفوظ على هذا الجهاز فقط: ' + bad + ')' : ''));
+    } catch (e) {
+      badge('local');
+      say('تعذّر الوصول إلى الملفّ: ' + e.message);
+    }
   }
 
   // ============================================================
   // # 🔑 🪟  THE ACCOUNT BUTTON AND ITS SHEET
   // # 🔤 JavaScript
-  // # 🎯 Says whether the Drive is linked, opens the account sheet,
-  // #    and closes it
+  // # 🎯 Opens the account sheet, closes it, and tries the Drive again
+  // #    whenever the visitor signs in or out
   // # 🔗 The account panels are not rebuilt or moved: their own file
   // #    still drives them by the same ids. This only opens and shuts
-  // #    the sheet they sit in, and reads the two messages that file
-  // #    already sends out so the button can say which state we are in
+  // #    the sheet they sit in, and listens for the two messages that
+  // #    file already sends out
   // ============================================================
   function wireAccount() {
-    const sheet = $('account-sheet'), btn = $('who-btn');
+    const sheet = $('account-sheet');
 
-    const setOff = () => { btn.textContent = 'اربط حسابك ودرايفك'; btn.classList.add('is-off'); };
-    const setOn = () => { btn.textContent = 'الحساب ودرايف'; btn.classList.remove('is-off'); };
+    badge(window.checkMeSignedIn ? 'local' : 'out');
+    document.addEventListener('signed-in', connectDrive);
+    document.addEventListener('signed-out', () => { place = null; badge('out'); say(''); });
 
-    setOff();
-    document.addEventListener('signed-in', setOn);
-    document.addEventListener('signed-out', setOff);
-    if (window.checkMeSignedIn) setOn();
-
-    btn.onclick = () => { sheet.hidden = false; };
-    $('sheet-close').onclick = () => { sheet.hidden = true; };
-    sheet.addEventListener('click', e => { if (e.target === sheet) sheet.hidden = true; });
+    $('who-btn').onclick = () => { sheet.hidden = false; };
+    $('sheet-close').onclick = () => { sheet.hidden = true; connectDrive(); };
+    sheet.addEventListener('click', e => { if (e.target === sheet) { sheet.hidden = true; connectDrive(); } });
     document.addEventListener('keydown', e => {
-      if (e.key === 'Escape' && !sheet.hidden) sheet.hidden = true;
+      if (e.key === 'Escape' && !sheet.hidden) { sheet.hidden = true; connectDrive(); }
     });
   }
 
   // ============================================================
   // # 🚀 🧩  PUTTING IT ON THE PAGE
   // # 🔤 JavaScript
-  // # 🎯 Writes the strip, draws the year, wires everything, and lands
-  // #    the view on this month
-  // # 🔗 The body is given a class so the stylesheet can undo the
-  // #    centring the shell does, instead of the shell having to know
-  // #    that a board exists. The view lands on the current month
-  // #    because the day being filled in is almost always today
+  // # 🎯 Draws the year, wires everything, lands the view on today,
+  // #    and then reaches for Drive
+  // # 🔗 The board is drawn from the browser copy FIRST and the Drive
+  // #    is asked afterwards. The other order would leave the owner
+  // #    looking at nothing while the network is thought about, and
+  // #    would leave him with nothing at all on a morning with no
+  // #    signal. The body is given a class so the stylesheet can undo
+  // #    the centring the shell does, instead of the shell having to
+  // #    know that a board exists
   // ============================================================
   function start() {
     document.body.classList.add('has-board');
     hueStyle();
-
-    $('board-top').innerHTML =
-      '<div class="year-nav">' +
-      '<button class="step" type="button" id="year-back" title="السنة السابقة">‹</button>' +
-      '<span class="year-now" id="year-now"></span>' +
-      '<button class="step" type="button" id="year-next" title="السنة التالية">›</button>' +
-      '</div>' +
-      '<div class="tally"><b id="tally-done">0</b><span id="tally-days"></span></div>' +
-      '<button class="who-btn" type="button" id="who-btn"></button>' +
-      `<div class="months">${chips()}</div>`;
-
-    $('legend').innerHTML = legend();
-
     draw();
     wireAccount();
-
-    $('year-back').onclick = () => { year--; draw(); scrollToMonth(1); };
-    $('year-next').onclick = () => { year++; draw(); scrollToMonth(1); };
-    $('board-top').addEventListener('click', e => {
-      const chip = e.target.closest('.month-chip');
-      if (chip) scrollToMonth(Number(chip.dataset.m), true);
-    });
-
-    scrollToMonth(nowLocal.getMonth() + 1);
+    goToToday(false);
+    connectDrive();
   }
 
   start();
