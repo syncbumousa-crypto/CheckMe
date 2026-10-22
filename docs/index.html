@@ -1,17 +1,133 @@
-<!doctype html>
+<!-- ============================================================ -->
+<!-- # ⚙️ 📄  PAGE SETUP -->
+<!-- # 🔤 HTML -->
+<!-- # 🎯 Sets up the page: its type, Arabic language, right to left text, -->
+<!-- #    letter encoding so Arabic shows the right way, phone screen size, -->
+<!-- #    the tab name, and it calls the style file -->
+<!-- # 🔗 None of this shows on the page. It all runs before the content is -->
+<!-- #    drawn. The v number on the style file is bumped on every publish, -->
+<!-- #    so a visitor never gets an old copy out of the browser memory -->
+<!-- ============================================================ -->
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>CheckMe</title>
-<style>
-  html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    background: #808080;
-  }
-</style>
+<link rel="stylesheet" href="🏠shell/F-End/shell.css?v=1">
+<link rel="stylesheet" href="☁️CloudingStorage/F-End/storage.css?v=1">
 </head>
-<body></body>
+<body>
+
+<!-- ============================================================ -->
+<!-- # 👆 🔘  PICK WHAT TO DO -->
+<!-- # 🔤 HTML -->
+<!-- # 🎯 The first panel: two buttons to pick what to do, -->
+<!-- #    make a new account or log in -->
+<!-- # 🔗 The accounts screen file hides this panel and shows the form -->
+<!-- #    panel below when one of the buttons is clicked -->
+<!-- ============================================================ -->
+<div class="box" id="choice">
+  <button class="btn btn-main" type="button" id="go-signup">إنشاء حساب</button>
+  <button class="btn" type="button" id="go-login">تسجيل الدخول</button>
+</div>
+
+<!-- ============================================================ -->
+<!-- # 📝 🔑  EMAIL AND PASSWORD FORM -->
+<!-- # 🔤 HTML -->
+<!-- # 🎯 The form panel: an email box, a password box, a send button, -->
+<!-- #    a back button, and a line for messages -->
+<!-- # 🔗 Hidden until a button above is clicked. The accounts screen file -->
+<!-- #    changes the title and the send button text, because the same -->
+<!-- #    form is used for both signing up and logging in -->
+<!-- ============================================================ -->
+<form class="box" id="form" hidden>
+  <h1 class="title" id="form-title"></h1>
+  <input class="field" id="email" type="email" placeholder="البريد" required autocomplete="email">
+  <input class="field" id="password" type="password" placeholder="كلمة السر" required minlength="6" autocomplete="current-password">
+  <button class="btn btn-main" type="submit" id="submit"></button>
+  <button class="btn btn-flat" type="button" id="back">رجوع</button>
+  <p class="note" id="note"></p>
+</form>
+
+<!-- ============================================================ -->
+<!-- # 👤 ✅  LOGGED IN PANEL -->
+<!-- # 🔤 HTML -->
+<!-- # 🎯 Shows which account is open, the Google Drive part, and a way out -->
+<!-- # 🔗 The accounts screen file shows this one after a good login. The -->
+<!-- #    three groups inside are three steps, and the storage screen -->
+<!-- #    file shows one at a time: link the account, pick the place, -->
+<!-- #    then the finished file. All three start hidden behind a turning -->
+<!-- #    circle, because working out which one is right needs answers -->
+<!-- #    from two services. Showing any of them first would flash a -->
+<!-- #    wrong step for a moment -->
+<!-- ============================================================ -->
+<div class="box" id="session" hidden>
+  <p class="who" id="who"></p>
+
+  <div class="spinner" id="session-spin"></div>
+
+  <div class="stack" id="step-link" hidden>
+    <button class="btn btn-main" type="button" id="link-google">اربط حساب قوقل</button>
+  </div>
+
+  <div class="stack" id="step-place" hidden>
+    <p class="where">مكان الحفظ المستمر</p>
+
+    <div class="spinner" id="probe-spin" hidden></div>
+
+    <div class="stack" id="place-buttons">
+      <button class="btn btn-main" type="button" id="pick-place">اختر المكان بنفسك</button>
+      <button class="btn" type="button" id="auto-place">خزّنه في مجلد CheckMe في جذر ملفاتي</button>
+    </div>
+
+    <p class="hint" id="shield-hint" hidden></p>
+  </div>
+
+  <div class="stack" id="step-done" hidden>
+    <p class="where" id="drive-where"></p>
+    <button class="btn" type="button" id="save-test">احفظ في ملفي</button>
+    <a class="btn btn-flat" id="drive-open" href="#" target="_blank" rel="noopener">افتح الملف في درايف</a>
+    <button class="btn btn-flat" type="button" id="change-place">غيّر مكان الحفظ</button>
+  </div>
+
+  <p class="note" id="drive-note"></p>
+  <button class="btn btn-flat" type="button" id="logout">خروج</button>
+</div>
+
+<!-- ============================================================ -->
+<!-- # 🔖 👁️  VERSION MARK -->
+<!-- # 🔤 HTML -->
+<!-- # 🎯 Shows which build of the site the visitor is actually running, -->
+<!-- #    in small faint text in the corner -->
+<!-- # 🔗 Must match the v number on the script lines below. When it does -->
+<!-- #    not, the browser is serving an old copy out of its memory, and -->
+<!-- #    this one line says so at a glance instead of leaving it a guess -->
+<!-- ============================================================ -->
+<p class="build">v1</p>
+
+<!-- ============================================================ -->
+<!-- # 📦 🔌  LIBRARIES AND SCRIPTS -->
+<!-- # 🔤 HTML -->
+<!-- # 🎯 Brings in three outside libraries: the sign in service, Google -->
+<!-- #    permission, and the Google file window. Then this site's own four -->
+<!-- #    files, in the order they need each other -->
+<!-- # 🔗 Sits at the end of body so the panels above already exist when the -->
+<!-- #    scripts look for them. The libraries come first because the site -->
+<!-- #    files use them. Then the two B-End files, which show nothing and -->
+<!-- #    only talk to the two services. Then the two F-End files, which -->
+<!-- #    draw the screen and call the names the B-End files left ready. -->
+<!-- #    The order matters: a screen file loaded first would look for a -->
+<!-- #    name that does not exist yet. The v number is bumped on every -->
+<!-- #    publish, so a reload always brings the new code, never an old copy -->
+<!-- ============================================================ -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://accounts.google.com/gsi/client"></script>
+<script src="https://apis.google.com/js/api.js"></script>
+<script src="🔐accounts/B-End/ProfilesSupabase.js?v=1"></script>
+<script src="☁️CloudingStorage/B-End/ProfilesClouding.js?v=1"></script>
+<script src="🔐accounts/F-End/ProfilesSupabaseScreen.js?v=1"></script>
+<script src="☁️CloudingStorage/F-End/ProfilesCloudingScreen.js?v=1"></script>
+
+</body>
 </html>
