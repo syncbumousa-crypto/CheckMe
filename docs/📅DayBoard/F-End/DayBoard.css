@@ -99,11 +99,16 @@ body.has-board {
 
 .step:hover { background: var(--surface-2); }
 
+/* Packed tight against the near edge, with no pusher between them.
+   An `auto` margin used to shove the months to the far side, which on
+   a wide screen opened a band of nothing across the middle of the
+   strip with a lonely button at each end. Things that belong together
+   sit together, and the empty room is left over at the end where
+   empty room belongs */
 .months {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin-inline-start: auto;
 }
 
 .month-chip {
@@ -133,13 +138,20 @@ body.has-board {
 /* ============================================================ */
 .grid-wrap {
   overflow: auto;
-  max-height: calc(100vh - 150px);
+  max-height: calc(100vh - 112px);
   border: 1px solid var(--line);
   border-radius: 12px;
   background: var(--surface);
 }
 
+/* Told, not measured. With the layout left on `auto` the table weighs
+   every one of eleven thousand cells and then hands each column the
+   widest thing it found, which made every column forty odd pixels for
+   a square that wanted thirty and pushed the grid off the screen.
+   `fixed` makes the `col` widths above the law, and it draws faster
+   besides, since nothing has to be weighed at all */
 table.year {
+  table-layout: fixed;
   border-collapse: separate;
   border-spacing: 0;
   font-size: 0.78rem;
@@ -170,8 +182,29 @@ table.year thead th {
   border-bottom: 1px solid var(--line);
 }
 
-table.year thead tr:nth-child(2) th { top: 26px; }
-table.year thead tr:nth-child(3) th { top: 50px; }
+table.year thead tr:nth-child(2) th { top: 24px; }
+table.year thead tr:nth-child(3) th { top: 46px; }
+
+/* The two corner cells reach down all three head rows, and their one
+   word used to float in the middle of all that height with a hand's
+   width of nothing above and below it. Sat on the floor of the cell
+   it lines up with the first day instead, and the emptiness collects
+   in one place at the top where the eye skips it */
+table.year thead th.month, table.year thead th.day { vertical-align: bottom; }
+
+/* Pressing the word in the corner goes to today. It is the one bit of
+   the head that does something, so it is the one bit that says so */
+th.day .jump {
+  font: inherit;
+  padding: 4px 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink-dim);
+  cursor: pointer;
+}
+
+th.day .jump:hover { border-color: var(--today); color: var(--today); }
 
 th.month, th.day {
   position: sticky;
@@ -213,6 +246,8 @@ th.group {
   background: hsl(var(--hue) 26% 23%);
   border-inline-start: 1px solid var(--line);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 th.band {
@@ -220,23 +255,48 @@ th.band {
   color: var(--ink-faint);
   border-inline-start: 1px solid var(--line-soft);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 th.item {
-  width: 78px;
-  min-width: 78px;
-  height: 78px;
-  padding: 4px 5px;
+  width: 30px;
+  min-width: 30px;
+  /* Found by trying, not by guessing: at a hundred and ten every one
+     of the thirty names stands clear with room over it, and the head
+     stops at a hundred and fifty six pixels instead of two hundred and
+     sixteen, which is three more days of the month on screen */
+  height: var(--item-h, 110px);
+  padding: 0;
   vertical-align: bottom;
-  text-align: center;
+  border-inline-start: 1px solid var(--line-soft);
+}
+
+/* Standing up, and still the whole name. Turning the text was the
+   first design and it was right about the column and wrong about the
+   word: it cut `اذكار الصباح` down to `أذكار`, and a board whose head
+   has to be decoded is not a board. `writing-mode` is what turns the
+   LINE rather than each letter, so Arabic keeps its joins and its
+   right to left order; the half turn after it is what makes the line
+   climb from the bottom instead of hanging from the top. Wrapping is
+   left on, so the four longest names fold into two standing lines
+   rather than making every column in the table as tall as the worst
+   one of them */
+th.item > span {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  height: 100%;
+  padding: 6px 2px;
+  box-sizing: border-box;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  white-space: normal;
+  overflow-wrap: anywhere;
   font-size: 0.7rem;
   font-weight: 500;
-  line-height: 1.3;
-  white-space: normal;
-  word-break: normal;
-  overflow-wrap: break-word;
+  line-height: 1.25;
   color: var(--ink);
-  border-inline-start: 1px solid var(--line-soft);
 }
 
 th.item.band-start, th.band.band-start { border-inline-start: 1px solid var(--line); }
@@ -302,10 +362,10 @@ tr.is-friday th.day i { color: hsl(158 45% 60%); }
 /* #    edge so an untouched grid reads as a grid and not as a void */
 /* ============================================================ */
 td.cell {
-  width: 78px;
-  min-width: 78px;
-  height: 24px;
-  padding: 2px 3px;
+  width: 30px;
+  min-width: 30px;
+  height: 22px;
+  padding: 2px;
   border-inline-start: 1px solid var(--line-soft);
   border-bottom: 1px solid var(--line-soft);
   cursor: pointer;
@@ -433,7 +493,7 @@ td.cell:focus-visible::after { outline: 2px solid var(--today); outline-offset: 
 @media (max-width: 760px) {
   .board { padding-inline: 10px; }
   .grid-wrap { max-height: calc(100vh - 200px); }
-  td.cell, th.item { width: 66px; min-width: 66px; }
+  td.cell, th.item { width: 26px; min-width: 26px; }
   th.day { width: 84px; }
   th.day b { font-size: 0.78rem; }
   .months { margin-inline-start: 0; }

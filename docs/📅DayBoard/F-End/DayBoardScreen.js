@@ -93,8 +93,46 @@
   // #    works it out from the day whenever anything needs it, so
   // #    nothing is stored twice and nothing can fall out of step
   // ============================================================
+  // ============================================================
+  // # 📏 🪚  THE COLUMNS ARE TOLD THEIR WIDTH, NOT ASKED
+  // # 🔤 JavaScript
+  // # 🎯 Writes one `col` per column with a width worked out from how
+  // #    much room the group name needs over the columns it spans
+  // # 🔗 Without this the table measures its own contents and every
+  // #    column came out forty odd pixels instead of thirty, which
+  // #    pushed the grid past the edge of the screen for no reason the
+  // #    eye could see. The widest demand is never a square -- it is a
+  // #    GROUP NAME stretched over its columns, and a group of one
+  // #    column has to carry its whole name alone. So each group is
+  // #    asked what it needs, divided by how many columns it has, and
+  // #    nothing is wider than it must be
+  // ============================================================
+  const MONTH_W = 46, DAY_W = 104;
+
+  const colWidths = (() => {
+    const per = g => Math.max(30, Math.ceil((g.label.length * 7 + 16) / g.items.length));
+    const out = [];
+    layout.forEach(g => g.items.forEach(() => out.push(per(g))));
+    return out;
+  })();
+
+  // The table is given the sum as its own width. The `col` widths plus
+  // `table-layout: fixed` ought to be enough on their own, and they
+  // were not: the table went on drawing itself two hundred pixels
+  // wider than the columns it contains, because a table whose width is
+  // `auto` is free to decide, and it decided from the contents the
+  // fixed layout was supposed to stop it reading. Told a number, it
+  // has nothing left to decide
+  const TABLE_W = MONTH_W + DAY_W + colWidths.reduce((a, b) => a + b, 0);
+
+  const columns = () =>
+    `<colgroup><col style="width:${MONTH_W}px"><col style="width:${DAY_W}px">` +
+    colWidths.map(w => `<col style="width:${w}px">`).join('') + '</colgroup>';
+
   function head() {
-    let r1 = '<tr><th class="month" rowspan="3"></th><th class="day" rowspan="3">اليوم</th>';
+    let r1 = '<tr><th class="month" rowspan="3"></th>' +
+      '<th class="day" rowspan="3"><button class="jump" type="button" id="go-today" ' +
+      'title="اذهب إلى يومك">اليوم</button></th>';
     let r2 = '<tr>';
     let r3 = '<tr>';
 
@@ -104,12 +142,12 @@
         r2 += `<th class="band g-${g.id}${edgeOf(b.items[0].i)}" colspan="${b.items.length}">` +
           `${esc(b.sub)}</th>`;
         b.items.forEach(it => {
-          r3 += `<th class="item g-${g.id}${edgeOf(it.i)}">${esc(it.label)}</th>`;
+          r3 += `<th class="item g-${g.id}${edgeOf(it.i)}"><span>${esc(it.label)}</span></th>`;
         });
       });
     });
 
-    return `<thead>${r1}</tr>${r2}</tr>${r3}</tr></thead>`;
+    return columns() + `<thead>${r1}</tr>${r2}</tr>${r3}</tr></thead>`;
   }
 
   function dayRow(y, m, d) {
@@ -141,7 +179,7 @@
   const grid = () => {
     let html = head();
     for (let m = 1; m <= 12; m++) html += monthBlock(year, m);
-    return `<table class="year">${html}</table>`;
+    return `<table class="year" style="width:${TABLE_W}px">${html}</table>`;
   };
 
   // ============================================================
@@ -260,12 +298,40 @@
     `<button class="month-chip" type="button" id="chip-${k + 1}" data-m="${k + 1}">${name}</button>`
   ).join('');
 
+  // ============================================================
+  // # 🎯 📍  BRINGING A ROW OUT FROM UNDER THE HEAD
+  // # 🔤 JavaScript
+  // # 🎯 Scrolls the grid so a given element sits just below the three
+  // #    frozen head rows instead of behind them
+  // # 🔗 Measured from where things actually ARE on screen, not from
+  // #    `offsetTop`. A row's offsetTop is counted from whichever
+  // #    ancestor happens to be positioned, which is not the scrolling
+  // #    box here, so it only looked right while the box happened to
+  // #    sit near the top of the page. Subtracting the head is the
+  // #    whole point: a frozen head floats OVER the grid, so a row
+  // #    scrolled to the top of the box lands underneath it unseen
+  // ============================================================
+  function bring(el, smooth) {
+    const wrap = $('grid-wrap');
+    if (!wrap || !el) return;
+    const headH = wrap.querySelector('thead').getBoundingClientRect().height;
+    const offset = el.getBoundingClientRect().top - wrap.getBoundingClientRect().top;
+    wrap.scrollTo({ top: wrap.scrollTop + offset - headH - 8, behavior: smooth ? 'smooth' : 'auto' });
+  }
+
+  const markChip = m => [...document.querySelectorAll('.month-chip')].forEach(c =>
+    c.classList.toggle('is-now', Number(c.dataset.m) === m));
+
   function scrollToMonth(m, smooth) {
-    const wrap = $('grid-wrap'), body = $(`m-${m}`);
-    if (!wrap || !body) return;
-    wrap.scrollTo({ top: body.offsetTop - wrap.querySelector('thead').offsetHeight - 6, behavior: smooth ? 'smooth' : 'auto' });
-    [...document.querySelectorAll('.month-chip')].forEach(c =>
-      c.classList.toggle('is-now', Number(c.dataset.m) === m));
+    bring($(`m-${m}`), smooth);
+    markChip(m);
+  }
+
+  function scrollToToday() {
+    const thisYear = nowLocal.getFullYear();
+    if (year !== thisYear) { year = thisYear; draw(); }
+    bring(document.querySelector(`tr.row[data-d="${TODAY}"]`), true);
+    markChip(nowLocal.getMonth() + 1);
   }
 
   function draw() {
@@ -280,6 +346,7 @@
     wrap.style.setProperty('--head-h', `${Math.round(headBox.getBoundingClientRect().height)}px`);
 
     wireGrid(wrap);
+    $('go-today').onclick = scrollToToday;
   }
 
   // ============================================================
