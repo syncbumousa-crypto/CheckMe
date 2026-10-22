@@ -155,9 +155,56 @@
     } catch { return false; }
   };
 
+  // ============================================================
+  // # ☁️ 🔁  THE SAME YEAR, IN THE USER'S OWN DRIVE
+  // # 🔤 JavaScript
+  // # 🎯 Pulls the days out of the Drive file into the board, and
+  // #    pushes the board back into it
+  // # 🔗 The browser store is this device. The Drive file is the
+  // #    account: it is what makes the year the owner's and not his
+  // #    laptop's. Pushing reads the file FIRST and puts the days back
+  // #    into whatever else it holds, because the same file carries
+  // #    the linking stamp and anything a later feature adds, and a
+  // #    blind overwrite would quietly drop a neighbour's field.
+  // #    Pulling MERGES rather than replaces: a day typed on a phone
+  // #    while the laptop was shut must not be wiped by the laptop
+  // ============================================================
+  const cloud = () => window.CheckMeCloud;
+
+  const pull = async fileId => {
+    const file = await cloud().readFile(fileId);
+    const theirs = file && typeof file.days === 'object' && file.days ? file.days : {};
+    const mine = read().days;
+    const merged = { ...mine };
+    let taken = 0;
+    for (const [date, line] of Object.entries(theirs)) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
+      const c = clean(line);
+      if (c === blank()) continue;
+      if (!merged[date]) { merged[date] = c; taken++; }
+      else if (merged[date] !== c) {
+        // Two devices answered the same day. Neither is thrown away:
+        // an answer beats a blank, square by square
+        merged[date] = [...merged[date]]
+          .map((ch, i) => (ch === NONE ? c[i] : ch)).join('');
+        taken++;
+      }
+    }
+    write({ days: merged });
+    return { days: merged, taken, inFile: Object.keys(theirs).length };
+  };
+
+  const push = async fileId => {
+    const file = (await cloud().readFile(fileId)) || { app: 'CheckMe' };
+    file.days = read().days;
+    file.days_saved_at = new Date().toISOString();
+    await cloud().writeFile(fileId, file);
+    return Object.keys(file.days).length;
+  };
+
   window.CheckMeDayBoard = {
     DONE, MISS, NONE, N, GROUPS, ITEMS,
     blank, clean, at, put, score, next,
-    read, write, KEY
+    read, write, KEY, pull, push
   };
 })();
