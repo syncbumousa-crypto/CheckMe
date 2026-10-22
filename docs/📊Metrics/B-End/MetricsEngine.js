@@ -207,21 +207,30 @@
     const nafl = groupRatio(rows, kinds.nafl);
     const w = WEIGHTS.love;
 
-    const daily = rows.map(r => {
+    const daily = [], dutyDaily = [], naflDaily = [];
+    rows.forEach(r => {
       const one = [r];
-      return {
-        date: r.date, day: r.day, weekday: r.weekday,
-        value: blend([
-          [groupRatio(one, kinds.fard).ratio, w.fard],
-          [groupRatio(one, kinds.avoid).ratio, w.avoid],
-          [groupRatio(one, kinds.nafl).ratio, w.nafl]
-        ])
-      };
+      const f = groupRatio(one, kinds.fard).ratio;
+      const a = groupRatio(one, kinds.avoid).ratio;
+      const v = groupRatio(one, kinds.nafl).ratio;
+      const stamp = { date: r.date, day: r.day, weekday: r.weekday };
+
+      daily.push({ ...stamp, value: blend([[f, w.fard], [a, w.avoid], [v, w.nafl]]) });
+
+      // What is OWED, taken together: the obligations and the things
+      // to be kept away from. They are split from the voluntary acts
+      // because they are a different kind of day -- one is a floor a
+      // day must not fall through, the other is everything above it,
+      // and a single line through both hides which of them moved
+      dutyDaily.push({ ...stamp, value: blend([[f, w.fard], [a, w.avoid]]) });
+      naflDaily.push({ ...stamp, value: v });
     });
 
     return {
       value: blend([[fard.ratio, w.fard], [avoid.ratio, w.avoid], [nafl.ratio, w.nafl]]),
       parts: { fard, avoid, nafl },
+      duty: { value: blend([[fard.ratio, w.fard], [avoid.ratio, w.avoid]]), daily: dutyDaily },
+      nafl: { value: nafl.ratio, daily: naflDaily },
       daily
     };
   }

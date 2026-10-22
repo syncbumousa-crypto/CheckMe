@@ -144,3 +144,166 @@
   .mcard.wide { grid-column: span 1; }
   .plot { height: 132px; flex: none; }
 }
+
+/* ============================================================ */
+/* # ⚙️ 🏷️  THE CARD HEAD, AND THE WAY INTO THE WORKINGS */
+/* # 🔤 CSS */
+/* # 🎯 The name on one side, a small gear on the other */
+/* # 🔗 The gear sits quiet until the pointer is near it. A figure */
+/* #    with no way to open it is a number the reader has to take */
+/* #    on trust, and a tracker nobody trusts is not opened twice; */
+/* #    but a button that shouts competes with the figure it is */
+/* #    there to explain */
+/* ============================================================ */
+.mtop { display: flex; align-items: center; justify-content: flex-start; gap: 7px; }
+
+.xbtn {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink-faint);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  opacity: 0.55;
+}
+
+.mcard:hover .xbtn { opacity: 0.9; }
+.xbtn:hover { background: rgba(255, 255, 255, 0.08); color: var(--ink); opacity: 1; }
+.xbtn svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.3; stroke-linecap: round; }
+.xbtn svg circle { fill: none; }
+
+/* ============================================================ */
+/* # ⏳ 🎨  `SO FAR`, AND A FIGURE THAT WEARS ITS VERDICT */
+/* # 🔤 CSS */
+/* # 🎯 The two words beside every percentage, and the four bands */
+/* #    its colour is picked from */
+/* # 🔗 `حتى الآن` is not decoration: every one of these figures is */
+/* #    a month still being lived, and without those words the */
+/* #    twenty second of October reads as a verdict on October. */
+/* #    The colour is set from the script, from the owner's own */
+/* #    four bands, and it is the one place a status colour belongs */
+/* #    -- the digits already say how much, so the colour is free */
+/* #    to say how it is */
+/* ============================================================ */
+.sofar { font-size: 0.68rem; color: var(--ink-faint); }
+
+/* ============================================================ */
+/* # 🔵 ⚪  TWO LINES ON ONE CARD */
+/* # 🔤 CSS */
+/* # 🎯 A dashed second curve, and the two names under the figure */
+/* # 🔗 Two curves of one hue told apart by lightness alone is a */
+/* #    pairing that fails in print, in bright sun and for a reader */
+/* #    who does not separate those two blues. The dash is the */
+/* #    second channel, and the legend carries the same dash so the */
+/* #    key and the chart say the same thing twice */
+/* ============================================================ */
+.curve-line.dashed { stroke-dasharray: 5 4; }
+
+.legend { display: flex; gap: 12px; font-size: 0.64rem; color: var(--ink-faint); margin-bottom: 2px; }
+.legend i {
+  display: inline-block;
+  width: 13px;
+  height: 2.5px;
+  border-radius: 2px;
+  margin-inline-end: 5px;
+  vertical-align: 3px;
+}
+.legend i.dash {
+  background-image: none !important;
+  -webkit-mask-image: repeating-linear-gradient(90deg, #000 0 5px, transparent 5px 9px);
+  mask-image: repeating-linear-gradient(90deg, #000 0 5px, transparent 5px 9px);
+}
+
+/* ============================================================ */
+/* # 🪟 ⚙️  THE EXPLANATION WINDOW */
+/* # 🔤 CSS */
+/* # 🎯 A sheet over the screen holding the workings of one measure */
+/* # 🔗 It is the one place on this screen where prose is welcome: */
+/* #    everywhere else a word costs a pixel of chart, and here the */
+/* #    words ARE the content. The body scrolls and the head does */
+/* #    not, so the title and the way out never leave */
+/* ============================================================ */
+#xpop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  background: rgba(12, 14, 18, 0.76);
+}
+
+.xbox {
+  display: flex;
+  flex-direction: column;
+  width: min(620px, 100%);
+  max-height: min(640px, 100%);
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  box-shadow: 0 20px 56px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+
+.xhead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 15px 18px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.xhead h3 { margin: 0; font-size: 1rem; font-weight: 600; color: var(--ink); }
+
+.xclose {
+  font: inherit;
+  font-size: 1.3rem;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink-dim);
+  cursor: pointer;
+  line-height: 1;
+}
+
+.xclose:hover { background: rgba(255, 255, 255, 0.08); color: var(--ink); }
+
+.xbody { padding: 16px 18px 20px; overflow: auto; }
+
+.xform {
+  margin: 0 0 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--surface-2);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.xwhy { margin: 0 0 14px; font-size: 0.8rem; line-height: 1.7; color: var(--ink-dim); }
+
+table.xtab { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+table.xtab td { padding: 8px 6px; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+table.xtab td:first-child { color: var(--ink); font-weight: 600; white-space: nowrap; }
+.x-note { color: var(--ink-faint); font-size: 0.74rem; line-height: 1.6; }
+.x-num {
+  color: var(--ink);
+  text-align: end;
+  width: 54px;
+  font-variant-numeric: tabular-nums;
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+.xrule, .xedit, .xwarn { margin: 14px 0 0; font-size: 0.75rem; line-height: 1.7; color: var(--ink-faint); }
+.xwarn { color: #fab219; }
+.xedit { padding-top: 12px; border-top: 1px solid var(--line-soft); }
