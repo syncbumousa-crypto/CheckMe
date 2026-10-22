@@ -3,9 +3,9 @@
 <!-- # 🔤 HTML -->
 <!-- # 🎯 Sets up the page: its type, Arabic language, right to left text, -->
 <!-- #    letter encoding so Arabic shows the right way, phone screen size, -->
-<!-- #    the tab name, and it calls the style file -->
+<!-- #    the tab name, and it calls the style files -->
 <!-- # 🔗 None of this shows on the page. It all runs before the content is -->
-<!-- #    drawn. The v number on the style file is bumped on every publish, -->
+<!-- #    drawn. The v number on every file is bumped on every publish, -->
 <!-- #    so a visitor never gets an old copy out of the browser memory -->
 <!-- ============================================================ -->
 <!DOCTYPE html>
@@ -14,85 +14,92 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>CheckMe</title>
-<link rel="stylesheet" href="🏠shell/F-End/shell.css?v=1">
-<link rel="stylesheet" href="☁️CloudingStorage/F-End/storage.css?v=1">
+<link rel="stylesheet" href="🏠shell/F-End/shell.css?v=2">
+<link rel="stylesheet" href="☁️CloudingStorage/F-End/storage.css?v=2">
+<link rel="stylesheet" href="📅DayBoard/F-End/DayBoard.css?v=2">
 </head>
 <body>
 
 <!-- ============================================================ -->
-<!-- # 👆 🔘  PICK WHAT TO DO -->
+<!-- # 🗓️ 🏠  THE BOARD IS THE HOME SCREEN -->
 <!-- # 🔤 HTML -->
-<!-- # 🎯 The first panel: two buttons to pick what to do, -->
-<!-- #    make a new account or log in -->
-<!-- # 🔗 The accounts screen file hides this panel and shows the form -->
-<!-- #    panel below when one of the buttons is clicked -->
+<!-- # 🎯 The whole board: the strip on top, the year grid, a line for -->
+<!-- #    messages, and the legend under it -->
+<!-- # 🔗 Four empty shells. The board screen file fills every one of -->
+<!-- #    them, because what goes inside is worked out from the item -->
+<!-- #    list and the year: twelve month buttons, three head rows and -->
+<!-- #    three hundred and sixty five day rows are not things to type -->
+<!-- #    by hand, and typing them here would make this file the second -->
+<!-- #    place that knows what the thirty things are -->
 <!-- ============================================================ -->
-<div class="box" id="choice">
-  <button class="btn btn-main" type="button" id="go-signup">إنشاء حساب</button>
-  <button class="btn" type="button" id="go-login">تسجيل الدخول</button>
+<div class="board">
+  <div class="board-top" id="board-top"></div>
+  <div class="grid-wrap" id="grid-wrap"></div>
+  <p class="note" id="board-note"></p>
+  <div class="legend" id="legend"></div>
 </div>
 
 <!-- ============================================================ -->
-<!-- # 📝 🔑  EMAIL AND PASSWORD FORM -->
+<!-- # 🔑 🪟  THE ACCOUNT, IN A SHEET OVER THE BOARD -->
 <!-- # 🔤 HTML -->
-<!-- # 🎯 The form panel: an email box, a password box, a send button, -->
-<!-- #    a back button, and a line for messages -->
-<!-- # 🔗 Hidden until a button above is clicked. The accounts screen file -->
-<!-- #    changes the title and the send button text, because the same -->
-<!-- #    form is used for both signing up and logging in -->
+<!-- # 🎯 Holds the three account panels and the three storage steps, -->
+<!-- #    behind a button in the strip above -->
+<!-- # 🔗 The panels inside are UNCHANGED and keep every id they had, -->
+<!-- #    because their own two files still drive them by those ids. -->
+<!-- #    What changed is only where they sit: the board is the home -->
+<!-- #    screen now, so signing in cannot be the first thing the -->
+<!-- #    visitor meets. The sheet starts hidden, and the hidden rule -->
+<!-- #    in shell.css beats its display, or it would cover the board -->
 <!-- ============================================================ -->
-<form class="box" id="form" hidden>
-  <h1 class="title" id="form-title"></h1>
-  <input class="field" id="email" type="email" placeholder="البريد" required autocomplete="email">
-  <input class="field" id="password" type="password" placeholder="كلمة السر" required minlength="6" autocomplete="current-password">
-  <button class="btn btn-main" type="submit" id="submit"></button>
-  <button class="btn btn-flat" type="button" id="back">رجوع</button>
-  <p class="note" id="note"></p>
-</form>
+<div id="account-sheet" hidden>
+  <button class="sheet-close" type="button" id="sheet-close" title="إغلاق">×</button>
 
-<!-- ============================================================ -->
-<!-- # 👤 ✅  LOGGED IN PANEL -->
-<!-- # 🔤 HTML -->
-<!-- # 🎯 Shows which account is open, the Google Drive part, and a way out -->
-<!-- # 🔗 The accounts screen file shows this one after a good login. The -->
-<!-- #    three groups inside are three steps, and the storage screen -->
-<!-- #    file shows one at a time: link the account, pick the place, -->
-<!-- #    then the finished file. All three start hidden behind a turning -->
-<!-- #    circle, because working out which one is right needs answers -->
-<!-- #    from two services. Showing any of them first would flash a -->
-<!-- #    wrong step for a moment -->
-<!-- ============================================================ -->
-<div class="box" id="session" hidden>
-  <p class="who" id="who"></p>
-
-  <div class="spinner" id="session-spin"></div>
-
-  <div class="stack" id="step-link" hidden>
-    <button class="btn btn-main" type="button" id="link-google">اربط حساب قوقل</button>
+  <div class="box" id="choice">
+    <button class="btn btn-main" type="button" id="go-signup">إنشاء حساب</button>
+    <button class="btn" type="button" id="go-login">تسجيل الدخول</button>
   </div>
 
-  <div class="stack" id="step-place" hidden>
-    <p class="where">مكان الحفظ المستمر</p>
+  <form class="box" id="form" hidden>
+    <h1 class="title" id="form-title"></h1>
+    <input class="field" id="email" type="email" placeholder="البريد" required autocomplete="email">
+    <input class="field" id="password" type="password" placeholder="كلمة السر" required minlength="6" autocomplete="current-password">
+    <button class="btn btn-main" type="submit" id="submit"></button>
+    <button class="btn btn-flat" type="button" id="back">رجوع</button>
+    <p class="note" id="note"></p>
+  </form>
 
-    <div class="spinner" id="probe-spin" hidden></div>
+  <div class="box" id="session" hidden>
+    <p class="who" id="who"></p>
 
-    <div class="stack" id="place-buttons">
-      <button class="btn btn-main" type="button" id="pick-place">اختر المكان بنفسك</button>
-      <button class="btn" type="button" id="auto-place">خزّنه في مجلد CheckMe في جذر ملفاتي</button>
+    <div class="spinner" id="session-spin"></div>
+
+    <div class="stack" id="step-link" hidden>
+      <button class="btn btn-main" type="button" id="link-google">اربط حساب قوقل</button>
     </div>
 
-    <p class="hint" id="shield-hint" hidden></p>
-  </div>
+    <div class="stack" id="step-place" hidden>
+      <p class="where">مكان الحفظ المستمر</p>
 
-  <div class="stack" id="step-done" hidden>
-    <p class="where" id="drive-where"></p>
-    <button class="btn" type="button" id="save-test">احفظ في ملفي</button>
-    <a class="btn btn-flat" id="drive-open" href="#" target="_blank" rel="noopener">افتح الملف في درايف</a>
-    <button class="btn btn-flat" type="button" id="change-place">غيّر مكان الحفظ</button>
-  </div>
+      <div class="spinner" id="probe-spin" hidden></div>
 
-  <p class="note" id="drive-note"></p>
-  <button class="btn btn-flat" type="button" id="logout">خروج</button>
+      <div class="stack" id="place-buttons">
+        <button class="btn btn-main" type="button" id="pick-place">اختر المكان بنفسك</button>
+        <button class="btn" type="button" id="auto-place">خزّنه في مجلد CheckMe في جذر ملفاتي</button>
+      </div>
+
+      <p class="hint" id="shield-hint" hidden></p>
+    </div>
+
+    <div class="stack" id="step-done" hidden>
+      <p class="where" id="drive-where"></p>
+      <button class="btn" type="button" id="save-test">احفظ في ملفي</button>
+      <a class="btn btn-flat" id="drive-open" href="#" target="_blank" rel="noopener">افتح الملف في درايف</a>
+      <button class="btn btn-flat" type="button" id="change-place">غيّر مكان الحفظ</button>
+    </div>
+
+    <p class="note" id="drive-note"></p>
+    <button class="btn btn-flat" type="button" id="logout">خروج</button>
+  </div>
 </div>
 
 <!-- ============================================================ -->
@@ -100,34 +107,38 @@
 <!-- # 🔤 HTML -->
 <!-- # 🎯 Shows which build of the site the visitor is actually running, -->
 <!-- #    in small faint text in the corner -->
-<!-- # 🔗 Must match the v number on the script lines below. When it does -->
-<!-- #    not, the browser is serving an old copy out of its memory, and -->
-<!-- #    this one line says so at a glance instead of leaving it a guess -->
+<!-- # 🔗 Must match the v number on the file calls. When it does not, -->
+<!-- #    the browser is serving an old copy out of its memory, and this -->
+<!-- #    one line says so at a glance instead of leaving it a guess -->
 <!-- ============================================================ -->
-<p class="build">v1</p>
+<p class="build">v2</p>
 
 <!-- ============================================================ -->
 <!-- # 📦 🔌  LIBRARIES AND SCRIPTS -->
 <!-- # 🔤 HTML -->
 <!-- # 🎯 Brings in three outside libraries: the sign in service, Google -->
-<!-- #    permission, and the Google file window. Then this site's own four -->
+<!-- #    permission, and the Google file window. Then this site's own six -->
 <!-- #    files, in the order they need each other -->
 <!-- # 🔗 Sits at the end of body so the panels above already exist when the -->
 <!-- #    scripts look for them. The libraries come first because the site -->
-<!-- #    files use them. Then the two B-End files, which show nothing and -->
-<!-- #    only talk to the two services. Then the two F-End files, which -->
-<!-- #    draw the screen and call the names the B-End files left ready. -->
-<!-- #    The order matters: a screen file loaded first would look for a -->
-<!-- #    name that does not exist yet. The v number is bumped on every -->
-<!-- #    publish, so a reload always brings the new code, never an old copy -->
+<!-- #    files use them. Then the three B-End files, which show nothing: -->
+<!-- #    two talk to the services and one holds what is being checked. -->
+<!-- #    Then the three F-End files, which draw the screen and call the -->
+<!-- #    names the B-End files left ready. The order matters twice: a -->
+<!-- #    screen file loaded first would look for a name that does not -->
+<!-- #    exist yet, and the board screen is LAST because it reads the -->
+<!-- #    flag the account screen sets, so it can say on its own button -->
+<!-- #    whether the Drive is linked without asking any service -->
 <!-- ============================================================ -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://accounts.google.com/gsi/client"></script>
 <script src="https://apis.google.com/js/api.js"></script>
-<script src="🔐accounts/B-End/ProfilesSupabase.js?v=1"></script>
-<script src="☁️CloudingStorage/B-End/ProfilesClouding.js?v=1"></script>
-<script src="🔐accounts/F-End/ProfilesSupabaseScreen.js?v=1"></script>
-<script src="☁️CloudingStorage/F-End/ProfilesCloudingScreen.js?v=1"></script>
+<script src="🔐accounts/B-End/ProfilesSupabase.js?v=2"></script>
+<script src="☁️CloudingStorage/B-End/ProfilesClouding.js?v=2"></script>
+<script src="📅DayBoard/B-End/DayBoardStore.js?v=2"></script>
+<script src="🔐accounts/F-End/ProfilesSupabaseScreen.js?v=2"></script>
+<script src="☁️CloudingStorage/F-End/ProfilesCloudingScreen.js?v=2"></script>
+<script src="📅DayBoard/F-End/DayBoardScreen.js?v=2"></script>
 
 </body>
 </html>
