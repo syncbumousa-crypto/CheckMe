@@ -14,10 +14,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>CheckMe</title>
-<link rel="stylesheet" href="🏠shell/F-End/shell.css?v=6">
-<link rel="stylesheet" href="☁️CloudingStorage/F-End/storage.css?v=6">
-<link rel="stylesheet" href="📅DayBoard/F-End/DayBoard.css?v=6">
-<link rel="stylesheet" href="📈Tracking/F-End/Tracking.css?v=6">
+<link rel="stylesheet" href="🏠shell/F-End/shell.css?v=7">
+<link rel="stylesheet" href="☁️CloudingStorage/F-End/storage.css?v=7">
+<link rel="stylesheet" href="📅DayBoard/F-End/DayBoard.css?v=7">
+<link rel="stylesheet" href="🪟Views/F-End/Views.css?v=7">
 </head>
 <body>
 
@@ -35,47 +35,48 @@
 <!-- #    was furniture, and every line of it was a day pushed off the -->
 <!-- #    bottom of the screen -->
 <!-- ============================================================ -->
-<div class="board">
-  <div class="grid-wrap" id="grid-wrap"></div>
-  <p class="note" id="board-note"></p>
+<div class="view" id="view-board">
+  <div class="board">
+    <div class="grid-wrap" id="grid-wrap"></div>
+    <p class="note" id="board-note"></p>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- # 🪟 ⬜  THE OTHER MAIN SCREENS, STILL EMPTY -->
+<!-- # 🔤 HTML -->
+<!-- # 🎯 One screen that stands in for whichever month was pressed, -->
+<!-- #    carrying its name and a line saying it is waiting -->
+<!-- # 🔗 One screen and not twelve. Nothing is in any of them yet, so -->
+<!-- #    twelve copies of nothing would be twelve things to keep in -->
+<!-- #    step; the title is rewritten when a month is pressed. The -->
+<!-- #    day they stop being alike, each gets its own -->
+<!-- ============================================================ -->
+<div class="view" id="view-blank" hidden>
+  <div class="blank-screen">
+    <h2 class="blank-title" id="blank-title"></h2>
+    <p class="blank-note">هذه الشاشة فارغةٌ بانتظار تفصيلك.</p>
+  </div>
 </div>
 
 <!-- ============================================================ -->
 <!-- # 🧰 📍  THE DOCK ALONG THE BOTTOM -->
 <!-- # 🔤 HTML -->
-<!-- # 🎯 The account on the far right, the performance window beside -->
-<!-- #    it, and the twelve months running off to the left -->
-<!-- # 🔗 Everything that is not the grid lives down here now. The -->
-<!-- #    order is the order they are reached in: the account is set -->
-<!-- #    once and sits nearest the thumb, the performance window is -->
-<!-- #    opened now and then, and the months are opened least. The -->
-<!-- #    month buttons are left empty for the tracking screen file to -->
-<!-- #    fill, so the twelve names live in one place and not two -->
+<!-- # 🎯 The account on the far right, then the buttons that switch -->
+<!-- #    between the main screens: the board, and the twelve months -->
+<!-- # 🔗 These SWITCH the screen, they do not open a window over it. -->
+<!-- #    The grid is the board's own main screen and `تتبّع أدائك` is -->
+<!-- #    its name; each month has a main screen of its own. So the -->
+<!-- #    dock is a row of tabs along the bottom, and the one being -->
+<!-- #    shown is the one lit. The account is the exception and stays -->
+<!-- #    a sheet: signing in is a thing you finish and dismiss, not a -->
+<!-- #    place you go. The month buttons are left empty for the views -->
+<!-- #    screen file to fill, so the twelve names live in one place -->
 <!-- ============================================================ -->
 <div class="dock">
   <button class="who-btn" type="button" id="who-btn"></button>
-  <button class="dock-btn" type="button" id="track-btn">تتبّع أدائك</button>
+  <button class="dock-btn is-on" type="button" id="track-btn">تتبّع أدائك</button>
   <div class="dock-months" id="dock-months"></div>
-</div>
-
-<!-- ============================================================ -->
-<!-- # 🪟 📊  THE WINDOW THAT OPENS OVER THE GRID -->
-<!-- # 🔤 HTML -->
-<!-- # 🎯 One empty window with a title, a close button and a body, -->
-<!-- #    used by the performance button and by all twelve months -->
-<!-- # 🔗 One window and not thirteen. What changes between them is -->
-<!-- #    the title and what goes in the body, and both are written by -->
-<!-- #    the tracking screen file when the button is pressed. Thirteen -->
-<!-- #    windows in the page would be thirteen things to keep in step -->
-<!-- ============================================================ -->
-<div id="panel" hidden>
-  <div class="panel-box">
-    <div class="panel-head">
-      <h2 class="panel-title" id="panel-title"></h2>
-      <button class="sheet-close" type="button" id="panel-close" title="إغلاق">×</button>
-    </div>
-    <div class="panel-body" id="panel-body"></div>
-  </div>
 </div>
 
 <!-- ============================================================ -->
@@ -150,7 +151,7 @@
 <!-- #    the browser is serving an old copy out of its memory, and this -->
 <!-- #    one line says so at a glance instead of leaving it a guess -->
 <!-- ============================================================ -->
-<p class="build">v6</p>
+<p class="build">v7</p>
 
 <!-- ============================================================ -->
 <!-- # 📦 🔌  LIBRARIES AND SCRIPTS -->
@@ -172,13 +173,13 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://accounts.google.com/gsi/client"></script>
 <script src="https://apis.google.com/js/api.js"></script>
-<script src="🔐accounts/B-End/ProfilesSupabase.js?v=6"></script>
-<script src="☁️CloudingStorage/B-End/ProfilesClouding.js?v=6"></script>
-<script src="📅DayBoard/B-End/DayBoardStore.js?v=6"></script>
-<script src="🔐accounts/F-End/ProfilesSupabaseScreen.js?v=6"></script>
-<script src="☁️CloudingStorage/F-End/ProfilesCloudingScreen.js?v=6"></script>
-<script src="📅DayBoard/F-End/DayBoardScreen.js?v=6"></script>
-<script src="📈Tracking/F-End/TrackingScreen.js?v=6"></script>
+<script src="🔐accounts/B-End/ProfilesSupabase.js?v=7"></script>
+<script src="☁️CloudingStorage/B-End/ProfilesClouding.js?v=7"></script>
+<script src="📅DayBoard/B-End/DayBoardStore.js?v=7"></script>
+<script src="🔐accounts/F-End/ProfilesSupabaseScreen.js?v=7"></script>
+<script src="☁️CloudingStorage/F-End/ProfilesCloudingScreen.js?v=7"></script>
+<script src="📅DayBoard/F-End/DayBoardScreen.js?v=7"></script>
+<script src="🪟Views/F-End/ViewsScreen.js?v=7"></script>
 
 </body>
 </html>

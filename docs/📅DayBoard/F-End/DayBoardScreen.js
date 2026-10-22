@@ -415,13 +415,6 @@
     wireAccount();
     goToToday(false);
     connectDrive();
-
-    // The tracking screen reads the board through this rather than
-    // through the store. The store holds the copy that was last
-    // SAVED, and saving waits a moment after the last click -- so a
-    // window opened straight after ticking a square would have shown
-    // the square still untouched
-    window.CheckMeBoardLive = () => board;
   }
 
   start();

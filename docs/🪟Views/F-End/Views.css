@@ -1,0 +1,72 @@
+/* ============================================================ */
+/* # 🪟 🔀  ONE MAIN SCREEN AT A TIME */
+/* # 🔤 CSS */
+/* # 🎯 Every main screen is a `view`, and only the one being looked */
+/* #    at is on the page */
+/* # 🔗 Switched, not stacked over: these are places the reader GOES, */
+/* #    not windows that open in front of where he was. The hidden */
+/* #    rule in shell.css is what puts a view away, and it beats this */
+/* #    display because it carries `!important` -- which is why a */
+/* #    view is hidden with the attribute and never with a style */
+/* ============================================================ */
+.view {
+  display: block;
+  min-height: 100%;
+}
+
+/* ============================================================ */
+/* # ⬜ 🚧  A MAIN SCREEN WITH NOTHING IN IT YET */
+/* # 🔤 CSS */
+/* # 🎯 Centres a month's name and one line saying the screen is */
+/* #    waiting to be told what to hold */
+/* # 🔗 It fills the screen rather than sitting in a corner of it, */
+/* #    because an empty page with a note in the top left reads as a */
+/* #    page that failed to load. Centred and spaced, it reads as a */
+/* #    room that has not been furnished yet, which is the truth */
+/* ============================================================ */
+.blank-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: calc(100vh - 70px);
+  padding-block: 16px 56px;
+  padding-inline: 20px;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.blank-title {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.blank-note {
+  margin: 0;
+  font-size: 0.92rem;
+  color: var(--ink-faint);
+}
+
+/* ============================================================ */
+/* # 💡 🔘  THE BUTTON OF THE SCREEN BEING SHOWN */
+/* # 🔤 CSS */
+/* # 🎯 Lights the one dock button whose screen is on, and keeps the */
+/* #    fainter mark that says which month is today's */
+/* # 🔗 Two different marks that must not be confused: `is-on` is */
+/* #    where you ARE and carries a filled look, `is-now` is which */
+/* #    month today falls in and is only a tint on the word. If they */
+/* #    looked alike, October would read as the open screen on a day */
+/* #    the reader was looking at March */
+/* ============================================================ */
+.dock-btn.is-on, .month-btn.is-on {
+  background: var(--surface-2);
+  border-color: var(--ink-faint);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.month-btn.is-now { color: var(--today); }
+.month-btn.is-now.is-on { border-color: var(--today); }
