@@ -67,26 +67,49 @@
   // #    voluntary -- because a sorter that quietly drops a line
   // #    gives an answer that is wrong and looks fine
   // ============================================================
-  const BY_NAME = { duty: 'الأمر والنهي', drown: 'عدم الغرق بالسوشال ويوتيوب' };
+  const BY_NAME = { duty: 'الأمر والنهي', drown: 'لاغرق سوشال' };
 
-  const kinds = (() => {
+  // The band is matched by NAME, so the name lives in one place: it
+  // is printed on the board as a column head AND it is what sorts
+  // those two lines into the avoidance kind. Changed in one and not
+  // the other, the head would read right while the measure quietly
+  // counted them as voluntary acts
+  const AVOID_BAND = 'النواهي';
+
+  const computeKinds = () => {
     const fard = [], avoid = [], nafl = [], body = [], study = [], orphan = [];
 
     B.ITEMS.forEach((it, i) => {
+      if (B.hidden && B.hidden.has(i)) return;              // set aside by the owner
       if (it.g === 'study') return study.push(i);
       if (it.g === 'life') return it.label === BY_NAME.drown ? orphan.push(i) : body.push(i);
       if (it.g === 'faith' && it.sub === 'جماعة') return fard.push(i);
-      if (it.g === 'faith' && it.sub === 'وغيرها') return avoid.push(i);
+      if (it.g === 'faith' && it.sub === AVOID_BAND) return avoid.push(i);
       if (it.label === BY_NAME.duty) return fard.push(i);
       nafl.push(i);
     });
 
-    const want = { fard: 6, avoid: 2, nafl: 16, body: 4, study: 1 };
     const got = { fard: fard.length, avoid: avoid.length, nafl: nafl.length, body: body.length, study: study.length };
-    const wrong = Object.keys(want).filter(k => want[k] !== got[k]);
+
+    // The invariant is NOTHING LOST, not a fixed count per kind. It
+    // used to be the latter -- six duties, two avoidances, sixteen
+    // voluntary -- which was right while the list could not change
+    // and would have cried wrong the first time the owner added a
+    // line of his own. What must never happen is a line falling
+    // between the sorter's branches and being counted nowhere, and
+    // that is what this adds up
+    const sorted = fard.length + avoid.length + nafl.length + body.length + study.length + orphan.length;
+    const live = B.ITEMS.length - (B.hidden ? B.hidden.size : 0);
+    const wrong = sorted === live ? [] : [`فُرز ${sorted} من ${live}`];
 
     return { fard, avoid, nafl, body, study, orphan, wrong, got };
-  })();
+  };
+
+  let kinds = computeKinds();
+  document.addEventListener('items-changed', () => {
+    kinds = computeKinds();
+    if (window.CheckMeMetrics) window.CheckMeMetrics.kinds = kinds;   // the export is a value, not a window on the variable
+  });
 
   // ============================================================
   // # ➗ 📅  THE DENOMINATOR IS THE WHOLE ARGUMENT
@@ -207,21 +230,30 @@
     const nafl = groupRatio(rows, kinds.nafl);
     const w = WEIGHTS.love;
 
-    const daily = rows.map(r => {
+    const daily = [], dutyDaily = [], naflDaily = [];
+    rows.forEach(r => {
       const one = [r];
-      return {
-        date: r.date, day: r.day, weekday: r.weekday,
-        value: blend([
-          [groupRatio(one, kinds.fard).ratio, w.fard],
-          [groupRatio(one, kinds.avoid).ratio, w.avoid],
-          [groupRatio(one, kinds.nafl).ratio, w.nafl]
-        ])
-      };
+      const f = groupRatio(one, kinds.fard).ratio;
+      const a = groupRatio(one, kinds.avoid).ratio;
+      const v = groupRatio(one, kinds.nafl).ratio;
+      const stamp = { date: r.date, day: r.day, weekday: r.weekday };
+
+      daily.push({ ...stamp, value: blend([[f, w.fard], [a, w.avoid], [v, w.nafl]]) });
+
+      // What is OWED, taken together: the obligations and the things
+      // to be kept away from. They are split from the voluntary acts
+      // because they are a different kind of day -- one is a floor a
+      // day must not fall through, the other is everything above it,
+      // and a single line through both hides which of them moved
+      dutyDaily.push({ ...stamp, value: blend([[f, w.fard], [a, w.avoid]]) });
+      naflDaily.push({ ...stamp, value: v });
     });
 
     return {
       value: blend([[fard.ratio, w.fard], [avoid.ratio, w.avoid], [nafl.ratio, w.nafl]]),
       parts: { fard, avoid, nafl },
+      duty: { value: blend([[fard.ratio, w.fard], [avoid.ratio, w.avoid]]), daily: dutyDaily },
+      nafl: { value: nafl.ratio, daily: naflDaily },
       daily
     };
   }

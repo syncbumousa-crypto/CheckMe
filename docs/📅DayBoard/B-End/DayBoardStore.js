@@ -23,7 +23,7 @@
     { id: 'evening', label: 'المسائيات', hue: 280 },
     { id: 'faith', label: 'دينية على طول اليوم', hue: 196 },
     { id: 'life', label: 'حياتية على طول اليوم', hue: 325 },
-    { id: 'study', label: 'دراسية', hue: 62 }
+    { id: 'study', label: 'دراسة', hue: 62 }
   ];
 
   // ============================================================
@@ -54,7 +54,7 @@
   const PER_WEEK = n => ({ perWeek: n });
   const EXCEPT = weekday => ({ exceptWeekday: weekday });   // 0 الأحد .. 6 السبت
 
-  const ITEMS = [
+  const BASE = [
     row('morning', '', 'قيام الليل'),
     row('morning', '', 'الصدقة'),
     row('morning', '', 'اذكار الصباح'),
@@ -79,19 +79,100 @@
     row('faith', 'سنن', 'الظهر سنن'),
     row('faith', 'سنن', 'المغرب سنن'),
     row('faith', 'سنن', 'العشاء سنن'),
-    row('faith', 'وغيرها', 'عدم ال7'),
-    row('faith', 'وغيرها', 'لا موسيقى'),
+    row('faith', 'النواهي', 'عدم ال7'),
+    row('faith', 'النواهي', 'لا موسيقى'),
 
     row('life', '', 'الاكل معد منزليا'),
     row('life', '', 'النادي', PER_WEEK(4)),
-    row('life', '', 'عدم الغرق بالسوشال ويوتيوب'),
+    row('life', '', 'لاغرق سوشال'),
     row('life', '', 'عدم شرب قهوة/ الا سبت', EXCEPT(6)),
     row('life', '', 'النوم المبكر قبل 9'),
 
-    row('study', '', 'مذاكرة ساعة')
+    row('study', '', 'هدف المذاكرة')
   ];
 
-  const N = ITEMS.length;
+  const N0 = BASE.length;
+
+  // ============================================================
+  // # ✏️ 🧷  THE OWNER'S OWN CHANGES, LAID OVER THE LIST
+  // # 🔤 JavaScript
+  // # 🎯 Keeps renames, hidings and new lines in their own store and
+  // #    folds them over the base list to make the live one
+  // # 🔗 The list's ORDER is the storage order: the character at a
+  // #    place in a day belongs to the line at the same place. So
+  // #    three things are allowed and a fourth is not.
+  // #    RENAME is free -- a name is not an index.
+  // #    ADD only ever APPENDS, so every index that already means
+  // #    something goes on meaning it, and a day saved thirty
+  // #    characters long is simply read as blank in the new place.
+  // #    HIDE sets a line aside without removing it, so the line
+  // #    keeps its index and its history: the day it is deleted
+  // #    outright, every answer after it in every saved day shifts
+  // #    one place and a hundred and sixty nine days quietly become
+  // #    a record of something else. That is why there is no delete
+  // ============================================================
+  const EDITS = 'checkme.itemedits';
+
+  const readEdits = () => {
+    try {
+      const e = JSON.parse(localStorage.getItem(EDITS) || 'null') || {};
+      return {
+        renamed: e.renamed && typeof e.renamed === 'object' ? e.renamed : {},
+        hidden: Array.isArray(e.hidden) ? e.hidden.filter(Number.isInteger) : [],
+        added: Array.isArray(e.added) ? e.added.filter(a => a && a.label && a.g) : []
+      };
+    } catch { return { renamed: {}, hidden: [], added: [] }; }
+  };
+
+  let edits = readEdits();
+
+  const build = () => BASE
+    .map((it, i) => (edits.renamed[i] ? { ...it, label: edits.renamed[i] } : it))
+    .concat(edits.added.map(a => row(a.g, a.sub || '', a.label, a.expect || null)));
+
+  let ITEMS = build();
+  let N = ITEMS.length;
+  let hidden = new Set(edits.hidden);
+
+  const refresh = () => {
+    ITEMS = build();
+    N = ITEMS.length;
+    hidden = new Set(edits.hidden);
+    window.CheckMeDayBoard.ITEMS = ITEMS;
+    window.CheckMeDayBoard.N = N;
+    window.CheckMeDayBoard.hidden = hidden;
+    document.dispatchEvent(new CustomEvent('items-changed'));
+  };
+
+  const saveEdits = () => {
+    try { localStorage.setItem(EDITS, JSON.stringify(edits)); } catch {}
+    refresh();
+  };
+
+  const renameItem = (i, label) => {
+    const name = String(label || '').trim();
+    if (!name || i < 0 || i >= N) return false;
+    if (i < N0) edits.renamed[i] = name; else edits.added[i - N0].label = name;
+    saveEdits();
+    return true;
+  };
+
+  const addItem = ({ g, sub, label, expect }) => {
+    const name = String(label || '').trim();
+    if (!name || !GROUPS.some(x => x.id === g)) return false;
+    edits.added.push({ g, sub: sub || '', label: name, expect: expect || null });
+    saveEdits();
+    return true;
+  };
+
+  const setHidden = (i, on) => {
+    edits.hidden = edits.hidden.filter(x => x !== i);
+    if (on) edits.hidden.push(i);
+    saveEdits();
+    return true;
+  };
+
+  const isBase = i => i < N0;
 
   // ============================================================
   // # 🔢 📅  A DAY IS THIRTY CHARACTERS
@@ -265,9 +346,10 @@
   };
 
   window.CheckMeDayBoard = {
-    DONE, MISS, NONE, N, GROUPS, ITEMS,
+    DONE, MISS, NONE, N, GROUPS, ITEMS, hidden, N0,
     blank, clean, at, put, score, next,
     read, write, KEY, pull, push,
-    ripen, todayISO
+    ripen, todayISO,
+    renameItem, addItem, setHidden, isBase, editsOf: () => edits
   };
 })();
