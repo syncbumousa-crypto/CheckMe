@@ -307,3 +307,108 @@ table.xtab td:first-child { color: var(--ink); font-weight: 600; white-space: no
 .xrule, .xedit, .xwarn { margin: 14px 0 0; font-size: 0.75rem; line-height: 1.7; color: var(--ink-faint); }
 .xwarn { color: #fab219; }
 .xedit { padding-top: 12px; border-top: 1px solid var(--line-soft); }
+
+/* ============================================================ */
+/* # 📜 ➖  THE EXPLANATION, CUT TO LINES */
+/* # 🔤 CSS */
+/* # 🎯 One row per part: its name, what it is worth, its count and */
+/* #    where it stands */
+/* # 🔗 It was paragraphs. Each table used to sit under forty words */
+/* #    saying why its weights were what they are, and the weights */
+/* #    are already written in the formula line above it -- so the */
+/* #    prose was the same claim a second time, longer */
+/* ============================================================ */
+.xform {
+  margin: 0 0 12px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  background: var(--surface-2);
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.xp {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 2px;
+  border-bottom: 1px solid var(--line-soft);
+  font-size: 0.8rem;
+}
+
+.xp-n { color: var(--ink); flex: 1; }
+.xp-w, .xp-c { color: var(--ink-faint); font-size: 0.72rem; }
+.xp-c { direction: ltr; unicode-bidi: isolate; }
+.xp-v {
+  color: var(--ink);
+  font-weight: 600;
+  min-width: 42px;
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+.xwarn { margin: 12px 0 0; font-size: 0.74rem; color: #fab219; }
+
+/* ============================================================ */
+/* # ✏️ ➕  THE EDITOR */
+/* # 🔤 CSS */
+/* # 🎯 Every line editable in place, one button to set it aside, */
+/* #    and a row at the bottom to add another */
+/* # 🔗 No delete button anywhere, by design: a line's place in the */
+/* #    list is its place in every saved day. `أخفِ` is what delete */
+/* #    was wanted for and costs nothing that cannot be undone, so */
+/* #    the hidden ones stay listed underneath with a way back */
+/* ============================================================ */
+.xlist { margin-top: 18px; border-top: 1px solid var(--line); padding-top: 12px; }
+
+.xe { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+
+.xe-name {
+  font: inherit;
+  font-size: 0.78rem;
+  flex: 1;
+  padding: 6px 10px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: var(--surface-2);
+  color: var(--ink);
+}
+
+.xe-name:hover { border-color: var(--line); }
+.xe-name:focus { border-color: var(--ink-faint); outline: none; }
+
+.xe-hide, .xe-show, .xadd-go {
+  font: inherit;
+  font-size: 0.7rem;
+  padding: 6px 11px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink-dim);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.xe-hide:hover, .xe-show:hover, .xadd-go:hover { background: var(--surface-2); color: var(--ink); }
+
+.xe.off { opacity: 0.55; font-size: 0.78rem; color: var(--ink-faint); }
+.xe.off span { flex: 1; padding: 6px 10px; }
+
+.xadd { display: flex; gap: 8px; margin-top: 12px; }
+.xadd-name {
+  font: inherit;
+  font-size: 0.78rem;
+  flex: 1;
+  padding: 7px 10px;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink);
+}
+.xadd-name:focus { border-style: solid; border-color: var(--ink-faint); outline: none; }
+.xadd-go { border-color: var(--ink-faint); color: var(--ink); }
+
+.xnote { margin: 12px 0 0; font-size: 0.7rem; line-height: 1.6; color: var(--ink-faint); }

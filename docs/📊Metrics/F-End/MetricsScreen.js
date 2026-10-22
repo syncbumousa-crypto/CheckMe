@@ -249,77 +249,104 @@
   // #    rules that are easiest to get wrong about it: a blank is
   // #    not a failure, and a blank on a day already past IS one
   // ============================================================
-  const RULES =
-    '<p class="xrule">المقام: عدد الأيام التي أُجيب فيها البند، لا عدد أيام الشهر. ' +
-    'والمربّع الفارغ في يومٍ <b>مضى</b> يُحسب «ماش»، أمّا اليوم ففراغه فراغ.</p>';
+  const num = v => (v === null || v === undefined ? '—' : Math.round(v * 100) + '٪');
 
-  const xrow = (name, note, ratio) =>
-    `<tr><td>${esc(name)}</td><td class="x-note">${esc(note)}</td>` +
-    `<td class="x-num">${ratio === null || ratio === undefined ? '—' : Math.round(ratio * 100) + '٪'}</td></tr>`;
-
-  const namesOf = list => list.map(i => B.ITEMS[i].label).join(' · ');
+  // One line per thing, and the line is the whole explanation: its
+  // name, what it is worth, and where it stands. The paragraphs that
+  // used to sit above each table said in forty words what the weights
+  // in the formula line say in four
+  const xpart = (name, weight, value, note) =>
+    `<div class="xp"><span class="xp-n">${esc(name)}</span>` +
+    (weight ? `<span class="xp-w">${weight}</span>` : '') +
+    (note ? `<span class="xp-c">${esc(note)}</span>` : '') +
+    `<span class="xp-v">${num(value)}</span></div>`;
 
   function explain(id, r) {
     const p = r.love.parts;
-    const K = M.kinds;
 
     if (id === 'love') {
-      return '<p class="xform">٥٠٪ الواجبات + ٢٥٪ اجتناب النواهي + ٢٥٪ النوافل</p>' +
-        '<p class="xwhy">الوزن على الباب لا على عدد بنوده: النوافل ستةَ عشرَ بندًا من أربعةٍ وعشرين، ' +
-        'وجمعٌ مستوٍ يُسلّمها ثلثي المقياس ويرفع يومًا كثرت نوافله وفاتته الصلوات.</p>' +
-        '<table class="xtab">' +
-        xrow('الواجبات (وزن ٥٠٪)', `${p.fard.done} من ${p.fard.answered} · ${namesOf(K.fard)}`, p.fard.ratio) +
-        xrow('اجتناب النواهي (٢٥٪)', `${p.avoid.done} من ${p.avoid.answered} · ${namesOf(K.avoid)}`, p.avoid.ratio) +
-        xrow('النوافل (٢٥٪)', `${p.nafl.done} من ${p.nafl.answered} · ${K.nafl.length} بندًا`, p.nafl.ratio) +
-        '</table>' + RULES;
+      return '<p class="xform">٥٠٪ واجبات + ٢٥٪ نواهٍ + ٢٥٪ نوافل</p>' +
+        xpart('الواجبات', '٥٠٪', p.fard.ratio, `${p.fard.done}/${p.fard.answered}`) +
+        xpart('اجتناب النواهي', '٢٥٪', p.avoid.ratio, `${p.avoid.done}/${p.avoid.answered}`) +
+        xpart('النوافل', '٢٥٪', p.nafl.ratio, `${p.nafl.done}/${p.nafl.answered}`);
     }
 
     if (id === 'body') {
-      return '<p class="xform">متوسط البنود الأربعة، كلٌّ إلى ما هو متوقَّعٌ منه</p>' +
-        '<p class="xwhy">ليس كلُّ بندٍ واجبًا يوميًّا: النادي هدفٌ أسبوعيّ، والقهوة السبتُ مستثنًى من مقامها بنصّ اسمها.</p>' +
-        '<table class="xtab">' +
-        r.body.items.map(i => xrow(i.label,
-          `${i.done} من ${i.target}` + (i.expect && i.expect.perWeek ? ` · هدف ${i.expect.perWeek} أسبوعيًّا` : '') +
-          (i.expect && i.expect.exceptWeekday !== undefined ? ' · السبت خارج المقام' : ''),
-          i.ratio)).join('') +
-        '</table>' + RULES;
+      return '<p class="xform">متوسط البنود، كلٌّ إلى هدفه</p>' +
+        r.body.items.map(i => xpart(i.label, '',
+          i.ratio, `${i.done}/${i.target}`)).join('');
     }
 
     if (id === 'mind') {
       return '<p class="xform">٥٠٪ محبة الله + ٥٠٪ الصحة الجسدية</p>' +
-        '<p class="xwhy">لا بنود لها. هي ناتجُ المقياسين، كما عرّفتَها.</p>' +
-        '<table class="xtab">' +
-        xrow('محبة الله', 'نصف الوزن', r.mind.inputs.love) +
-        xrow('الصحة الجسدية', 'نصف الوزن', r.mind.inputs.body) +
-        '</table>' +
-        (r.orphans.length
-          ? `<p class="xwarn">خارج كل المقاييس: ${esc(r.orphans.join(' · '))} — قُل أين تريده.</p>` : '') +
-        RULES;
+        xpart('محبة الله', '٥٠٪', r.mind.inputs.love) +
+        xpart('الصحة الجسدية', '٥٠٪', r.mind.inputs.body) +
+        (r.orphans.length ? `<p class="xwarn">خارج المقاييس: ${esc(r.orphans.join(' · '))}</p>` : '');
     }
 
     if (id === 'study') {
       const s = r.study;
-      return '<p class="xform">٥٠٪ الإنجاز + ٥٠٪ التعافي</p>' +
-        '<p class="xwhy">بندٌ واحدٌ ثنائيّ لا يصنع «مرونة» بالعدّ وحده. المرونة هي العودة بعد الانقطاع.</p>' +
-        '<table class="xtab">' +
-        xrow('الإنجاز', `${s.answered ? Math.round(s.achievement * s.answered) : 0} من ${s.answered} يومًا مُجابًا`, s.achievement) +
-        xrow('التعافي', `${s.recovered || 0} من ${s.breaks} انقطاعًا تلاه «تم» في اليوم التالي`, s.recovery) +
-        '</table>' + RULES;
+      return '<p class="xform">٥٠٪ إنجاز + ٥٠٪ تعافٍ</p>' +
+        xpart('الإنجاز', '٥٠٪', s.achievement, `${s.answered} يومًا`) +
+        xpart('التعافي', '٥٠٪', s.recovery, `${s.recovered || 0}/${s.breaks}`);
     }
 
-    return `<p class="xform">نسبة الأيام الملتزمة من الأيام المكتوبة</p>` +
-      `<p class="xwhy">اليوم الملتزم: بلغ فيه ${M.NEED} من المقاييس الأربعة حدَّ ${pct(M.FLOOR)}٪. ` +
-      'ليس متوسطًا للأربعة — لو كان كذلك لكان نسخةً خامسةً منها، ولأخفى ما وُجد ليُظهره: شهرًا قويًّا في ركنٍ منهارًا في آخر.</p>' +
-      '<table class="xtab">' +
-      r.grit.ranked.map((m, k) => xrow(m.label, k === 0 ? 'الأضعف' : '', m.value)).join('') +
-      '</table>' +
-      `<p class="xrule">أيام ملتزمة: ${r.grit.committed} من ${r.grit.written} · أطول سلسلة ${r.grit.longest}</p>`;
+    return `<p class="xform">${M.NEED} من ٤ مقاييس فوق ${pct(M.FLOOR)}٪ = يوم ملتزم</p>` +
+      r.grit.ranked.map((m, k) => xpart(m.label, '', m.value, k === 0 ? 'الأضعف' : '')).join('') +
+      `<p class="xwarn" style="color:var(--ink-faint)">${r.grit.committed} من ${r.grit.written} يومًا · أطول سلسلة ${r.grit.longest}</p>`;
   }
 
-  const EDIT_NOTE =
-    '<p class="xedit">لتعديل البنود أو إضافتها: ترتيبُ البنود هو ترتيبُ التخزين، ' +
-    'فنقلُ بندٍ أو حذفُه يُعيد كتابة معنى كلّ يومٍ محفوظ. ' +
-    'إعادةُ التسمية والإضافةُ في آخر المجموعة آمنتان، وأبنيهما حين تقول.</p>';
+  // ============================================================
+  // # ✏️ ➕  EDITING THE LIST, AND THE ONE THING IT MAY NOT DO
+  // # 🔤 JavaScript
+  // # 🎯 Lists every line that feeds this measure with its name
+  // #    editable in place, a way to set one aside, and a row for
+  // #    adding a new one
+  // # 🔗 There is no delete, and that is the whole safety of this
+  // #    panel. A line's PLACE in the list is its place in every
+  // #    saved day, so removing one shifts every answer after it and
+  // #    a hundred and sixty nine days silently become a record of
+  // #    other things. `أخفِ` keeps the line and its history and
+  // #    takes it off the board and out of the sums, which is what
+  // #    deleting was wanted for; and adding only ever appends, so
+  // #    nothing that already means something changes meaning
+  // ============================================================
+  const FEEDS = {
+    love: K => [...K.fard, ...K.avoid, ...K.nafl],
+    body: K => K.body,
+    study: K => K.study,
+    mind: () => [],
+    grit: () => []
+  };
+
+  const GROUP_FOR = { love: 'morning', body: 'life', study: 'study' };
+
+  function editor(id) {
+    const K = M.kinds;
+    const list = (FEEDS[id] || (() => []))(K);
+
+    if (!list.length) {
+      return '<p class="xnote">هذا المقياس يُبنى من المقاييس الأخرى، فلا بنود تُضاف إليه.</p>';
+    }
+
+    const rows = list.map(i =>
+      `<div class="xe" data-i="${i}">` +
+      `<input class="xe-name" value="${esc(B.ITEMS[i].label)}" data-i="${i}">` +
+      `<button class="xe-hide" type="button" data-i="${i}" title="أخفِ هذا البند">أخفِ</button>` +
+      '</div>').join('');
+
+    const hiddenRows = [...(B.hidden || [])].filter(i => B.ITEMS[i])
+      .map(i => `<div class="xe off"><span>${esc(B.ITEMS[i].label)}</span>` +
+        `<button class="xe-show" type="button" data-i="${i}">أعِدْه</button></div>`).join('');
+
+    return '<div class="xlist">' + rows + hiddenRows + '</div>' +
+      '<div class="xadd">' +
+      `<input class="xadd-name" placeholder="بند جديد في ${esc(B.GROUPS.find(g => g.id === GROUP_FOR[id]).label)}">` +
+      `<button class="xadd-go" type="button" data-g="${GROUP_FOR[id]}">أضِف</button>` +
+      '</div>' +
+      '<p class="xnote">الاسم يُحفظ حين تخرج من الخانة. ولا حذف: البند المخفيّ يبقى بمكانه في السجلّ، ' +
+      'وحذفه يُزيح كلَّ إجابةٍ بعده في أيّامك المحفوظة.</p>';
+  }
 
   // ============================================================
   // # 🃏 🔢  THE CARD
@@ -371,6 +398,7 @@
   // #    different places and the comparison would be a fiction
   // ============================================================
   function render(year, month, host) {
+    last = { year, month, host };
     const days = B.ripen(B.read().days);
     const r = M.forMonth(year, month, days);
     const before = month === 1 ? null : M.forMonth(year, month - 1, days);
@@ -450,9 +478,43 @@
       pop.addEventListener('click', e => { if (e.target === pop) close(); });
       document.addEventListener('keydown', e => { if (e.key === 'Escape' && !pop.hidden) close(); });
     }
-    document.getElementById('xtitle').textContent = `كيف تُحسب: ${title}`;
-    document.getElementById('xbody').innerHTML = explain(id, r) + EDIT_NOTE;
+    document.getElementById('xtitle').textContent = title;
+    const body = document.getElementById('xbody');
+    body.innerHTML = explain(id, r) + editor(id);
+
+    // Rewired on every opening, because the body is rebuilt each time
+    body.querySelectorAll('.xe-name').forEach(inp => {
+      inp.onchange = () => B.renameItem(Number(inp.dataset.i), inp.value);
+      inp.onkeydown = e => { if (e.key === 'Enter') inp.blur(); };
+    });
+    body.querySelectorAll('.xe-hide').forEach(b => {
+      b.onclick = () => { B.setHidden(Number(b.dataset.i), true); reopen(id, title); };
+    });
+    body.querySelectorAll('.xe-show').forEach(b => {
+      b.onclick = () => { B.setHidden(Number(b.dataset.i), false); reopen(id, title); };
+    });
+    const addBtn = body.querySelector('.xadd-go'), addName = body.querySelector('.xadd-name');
+    if (addBtn) {
+      addBtn.onclick = () => {
+        if (!B.addItem({ g: addBtn.dataset.g, label: addName.value })) return;
+        addName.value = '';
+        reopen(id, title);
+      };
+      addName.onkeydown = e => { if (e.key === 'Enter') addBtn.click(); };
+    }
+
     pop.hidden = false;
+  }
+
+  // Rebuilt from a FRESH reading after any change, and the cards
+  // behind it with it: a new line moves every figure on the card, and
+  // a panel showing yesterday's numbers beside today's list is worse
+  // than one that flickers
+  let last = null;
+  function reopen(id, title) {
+    if (!last) return;
+    render(last.year, last.month, last.host);
+    openExplain(id, title, M.forMonth(last.year, last.month, B.ripen(B.read().days)));
   }
 
   window.CheckMeMetricsScreen = { render, HUE };
