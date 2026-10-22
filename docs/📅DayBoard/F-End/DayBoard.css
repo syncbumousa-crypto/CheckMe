@@ -281,10 +281,27 @@ table.year thead th.item {
    left on, so the four longest names fold into two standing lines
    rather than making every column in the table as tall as the worst
    one of them */
+/* Both axes centred, and the pair of them is the whole fix. In
+   `writing-mode: vertical-rl` the flex axes swap over: the MAIN axis
+   runs down the page, so `justify-content` is what centres the words
+   top to bottom, and `align-items` is what centres them left to
+   right. It was `flex-start`, which in this writing mode is the
+   right hand edge -- so every name sat eleven pixels from one wall
+   of its column and three from the other, and the two line names
+   twenty five from one and three from the other. Reading `align` as
+   vertical is the mistake this rule exists to not make again */
+/* `width: 100%` is the line that actually centres them, and it was
+   missing. In `writing-mode: vertical-rl` the two sizes swap jobs:
+   `height` sets the size along the text, and `width` sets the size
+   ACROSS it -- so with only a height given, the box shrank to the
+   width of one line of type and sat against the right wall of its
+   column, eighteen pixels of box in a column of thirty. Centring
+   inside it was centring inside the wrong box */
 table.year thead th.item > span {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
+  width: 100%;
   height: 100%;
   padding: 6px 2px;
   box-sizing: border-box;
