@@ -30,18 +30,21 @@
   // #    two lines, glancing at a month and coming back would throw
   // #    the reader to the first of January every time
   // ============================================================
-  function show(which, title) {
-    const board = $('view-board'), blank = $('view-blank'), grid = $('grid-wrap');
+  function show(which) {
+    const board = $('view-board'), monthView = $('view-month'), grid = $('grid-wrap');
 
     if (which === 'board') {
-      blank.hidden = true;
+      monthView.hidden = true;
       board.hidden = false;
       grid.scrollTop = keptScroll;
     } else {
       if (!board.hidden) keptScroll = grid.scrollTop;
       board.hidden = true;
-      $('blank-title').textContent = title;
-      blank.hidden = false;
+      // Drawn on the way IN, every time, never once at load: a month
+      // opened after a square was ticked must count the tick
+      window.CheckMeMetricsScreen.render(YEAR, Number(which), $('month-body'));
+      monthView.hidden = false;
+      scrollTo({ top: 0 });
     }
 
     $('track-btn').classList.toggle('is-on', which === 'board');
@@ -68,7 +71,7 @@
 
     $('dock-months').addEventListener('click', e => {
       const btn = e.target.closest('.month-btn');
-      if (btn) show(btn.dataset.m, `${MONTHS[Number(btn.dataset.m) - 1]} ${YEAR}`);
+      if (btn) show(btn.dataset.m);
     });
 
     // Take the board's scroll as it already stands before the first

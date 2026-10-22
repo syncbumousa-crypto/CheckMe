@@ -1,0 +1,243 @@
+/* ============================================================ */
+/* # 🃏 📐  THE CARD EVERY MEASURE IS BUILT IN */
+/* # 🔤 CSS */
+/* # 🎯 One shape for all five: a name, a big figure with its change, */
+/* #    a chart, and the parts underneath */
+/* # 🔗 The same three layers in the same order every time, so the */
+/* #    five read as one screen and not as five things that were */
+/* #    gathered. What differs between them is the CHART, because */
+/* #    that is the only thing their questions differ in. Each card */
+/* #    carries its hue in `--c` and every mark inside it is drawn */
+/* #    from that one variable */
+/* ============================================================ */
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+  gap: 14px;
+  padding-block: 14px 56px;
+  padding-inline: 16px;
+  box-sizing: border-box;
+  max-width: 1500px;
+  margin-inline: auto;
+}
+
+.mhead {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.mhead h2 { margin: 0; font-size: 1.5rem; font-weight: 700; }
+.mhead .sub { margin: 0; font-size: 0.84rem; color: var(--ink-dim); }
+
+.mcard {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+.mcard.wide { grid-column: 1 / -1; }
+
+.mcard h3 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--c);
+}
+
+.mcard .why { margin: 2px 0 0; font-size: 0.74rem; color: var(--ink-faint); }
+
+/* ============================================================ */
+/* # 🔢 ⬆️  THE FIGURE AND ITS CHANGE */
+/* # 🔤 CSS */
+/* # 🎯 The month in one number, with last month's difference beside */
+/* #    it */
+/* # 🔗 The number wears ink, never the card's hue: a figure painted */
+/* #    in the series colour competes with the marks that carry the */
+/* #    identity. The change is the part actually read -- a share on */
+/* #    its own says nothing until you know which way it moved -- so */
+/* #    it is never left off, and it says `لا سابق` rather than */
+/* #    nothing when there is no month before it to compare with */
+/* ============================================================ */
+.hero { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.hero b { font-size: 2.3rem; font-weight: 700; line-height: 1; color: var(--ink); }
+.hero .delta { font-size: 0.82rem; color: var(--ink-dim); }
+.hero .delta.up { color: #0ca30c; }
+.hero .delta.down { color: #d03b3b; }
+.hero .none { font-size: 1.6rem; color: var(--ink-faint); }
+
+/* ============================================================ */
+/* # 📈 🖊️  THE MARKS */
+/* # 🔤 CSS */
+/* # 🎯 Thin lines, recessive axes, a faint floor line, and cells */
+/* #    with a gap between them */
+/* # 🔗 Two pixel strokes and a grid dimmer than the data: the axis */
+/* #    is scaffolding and must never be read before the line it */
+/* #    holds up. The two pixel gap between cells is what keeps a */
+/* #    run of greens reading as five days and not as one bar */
+/* ============================================================ */
+.plot { position: relative; }
+.plot svg { display: block; width: 100%; height: auto; overflow: visible; }
+
+.grid-line { stroke: var(--line-soft); stroke-width: 1; }
+.floor-line { stroke: var(--ink-faint); stroke-width: 1; stroke-dasharray: 3 4; opacity: 0.7; }
+.axis-text { fill: var(--ink-faint); font-size: 9px; }
+
+.series { fill: none; stroke: var(--c); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+/* The two context lines are both grey, so they cannot be told apart
+   by colour and must not have to be: the second one is dashed. The
+   legend shows the same two patterns, so identity never rests on a
+   hue -- and two identical grey swatches in a legend name nothing */
+.series.ghost { stroke: var(--ink-faint); stroke-width: 1.5; opacity: 0.6; }
+.series.ghost.dashed { stroke-dasharray: 4 3; }
+.series-fill { fill: var(--c); opacity: 0.12; }
+
+.cross { stroke: var(--ink-dim); stroke-width: 1; }
+.dot { fill: var(--c); stroke: var(--surface); stroke-width: 2; }
+
+.cell-done { fill: #2f9e63; }
+.cell-miss { fill: #b8433f; }
+.cell-none { fill: var(--cell-none); }
+.cell-on { fill: var(--c); }
+.cell-off { fill: var(--cell-none); }
+
+/* ============================================================ */
+/* # 📏 📊  METERS AND HORIZONTAL BARS */
+/* # 🔤 CSS */
+/* # 🎯 A labelled track for each part of a measure, and the four */
+/* #    measures ranked against each other */
+/* # 🔗 A meter is the right form for one ratio against a limit, and */
+/* #    it beats a slice of a circle at it: two tracks of the same */
+/* #    length can be compared by eye, two arcs cannot. The numbers */
+/* #    are set left to right inside a right to left page, or `34/96` */
+/* #    comes out as `96/34` */
+/* ============================================================ */
+.meters { display: flex; flex-direction: column; gap: 7px; }
+
+.meter-row {
+  display: grid;
+  grid-template-columns: 1fr 64px 46px;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  color: var(--ink-dim);
+}
+
+.meter-row .track {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--cell-none);
+  overflow: hidden;
+}
+
+/* `display: block`, which it did NOT have and the bar was invisible.
+   The track above it is a span too and came out block anyway, because
+   a grid child is blockified whether it asks to be or not -- so the
+   track looked right while the fill inside it, which is nobody's grid
+   child, stayed inline and ignored both its width and its height. It
+   read on screen as an empty grey groove at every value */
+.meter-row .fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--c);
+}
+.meter-row .fill.weak { background: var(--ink-faint); }
+
+.meter-row .num {
+  direction: ltr;
+  unicode-bidi: isolate;
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.meter-row .of {
+  direction: ltr;
+  unicode-bidi: isolate;
+  text-align: end;
+  font-size: 0.7rem;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.meter-row .name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ============================================================ */
+/* # 🧾 🔤  THE LEGEND AND THE SMALL PRINT */
+/* # 🔤 CSS */
+/* # 🎯 Names the series when a chart carries more than one, and */
+/* #    holds the sentence that says what the chart does not show */
+/* # 🔗 A legend is not optional above one series: colour alone must */
+/* #    never be the only thing that tells two lines apart. And the */
+/* #    small print is where a card admits its own edge -- the body */
+/* #    chart leaves the gym out of its daily dots, and a reader who */
+/* #    is not told will read the dip as a bad day */
+/* ============================================================ */
+.legend-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  font-size: 0.74rem;
+  color: var(--ink-dim);
+}
+
+.legend-row i {
+  display: inline-block;
+  width: 14px;
+  height: 3px;
+  border-radius: 2px;
+  margin-inline-end: 6px;
+  vertical-align: 4px;
+}
+
+.fine { margin: 0; font-size: 0.72rem; color: var(--ink-faint); line-height: 1.5; }
+
+.pair { display: flex; gap: 18px; flex-wrap: wrap; }
+.pair div { font-size: 0.78rem; color: var(--ink-dim); }
+.pair b { display: block; font-size: 1.15rem; color: var(--ink); font-variant-numeric: tabular-nums; }
+
+/* ============================================================ */
+/* # 💬 🫧  THE TOOLTIP */
+/* # 🔤 CSS */
+/* # 🎯 One floating label, shared by every chart on the screen */
+/* # 🔗 One and not one per chart: five charts each carrying their */
+/* #    own would be five things to place, hide and keep in step. It */
+/* #    is `pointer-events: none` or it would sit under the cursor */
+/* #    and steal the hover that summoned it */
+/* ============================================================ */
+#mtip {
+  position: fixed;
+  z-index: 40;
+  pointer-events: none;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-2);
+  color: var(--ink);
+  font-size: 0.76rem;
+  white-space: nowrap;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+}
+
+#mtip .n { direction: ltr; unicode-bidi: isolate; display: inline-block; }
+
+.empty-month {
+  grid-column: 1 / -1;
+  padding: 40px 18px;
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+  text-align: center;
+  color: var(--ink-dim);
+}
+
+@media (max-width: 760px) {
+  .metrics { padding-inline: 10px; grid-template-columns: 1fr; }
+  .meter-row { grid-template-columns: 1fr 52px 42px; }
+}

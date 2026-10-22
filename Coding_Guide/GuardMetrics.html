@@ -74,7 +74,9 @@ const WANT = [
   ['الصحة النفسية', '0.262509', r => r.mind.value.toFixed(6)],
   ['المرونة: الإنجاز', '0.000000', r => r.study.achievement.toFixed(6)],
   ['المرونة: الانقطاعات', 15, r => r.study.breaks],
-  ['الصلابة: أيامٌ ملتزمة', '0 من 16', r => `${r.grit.committed} من ${r.grit.written}`],
+  ['الصلابة: أيامٌ ملتزمة (ثلاثةٌ من أربعة)', '1 من 16', r => `${r.grit.committed} من ${r.grit.written}`],
+  ['الصلابة: أطول سلسلة', 1, r => r.grit.longest],
+  ['الصلابة: الأضعف', 'المرونة الذهنية', r => r.grit.weakest.label],
   ['بندٌ خارج كل المقاييس', 'عدم الغرق بالسوشال ويوتيوب', r => r.orphans.join(' · ')]
 ];
 

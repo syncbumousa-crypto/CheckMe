@@ -34,7 +34,24 @@
     study: { achievement: 0.50, recovery: 0.50 }
   };
 
-  const FLOOR = 0.60;          // a committed day clears this in EVERY measure
+  // ============================================================
+  // # 🪨 3️⃣  THREE OF THE FOUR, NOT ALL FOUR
+  // # 🔤 JavaScript
+  // # 🎯 How many of the four measures a day must clear for it to
+  // #    count as a committed day, and the line it must clear
+  // # 🔗 `All four` was the first rule, and MEASURING IT BEFORE
+  // #    DRAWING IT is what saved the card. The study hour is one
+  // #    yes-or-no line, and it was not kept once in March -- so
+  // #    `all four` returned nought committed days at EVERY floor
+  // #    from 30% to 60%, and the best day of the month (worship
+  // #    87%, body 67%) did not count. The card would have shown
+  // #    0% and an empty ribbon every month and looked broken
+  // #    while working exactly as written. Three of four keeps the
+  // #    meaning -- a day with two collapsed pillars still does not
+  // #    count -- without letting one untouched habit erase a year
+  // ============================================================
+  const FLOOR = 0.60;          // the line each measure must clear on a day
+  const NEED = 3;              // how many of the four must clear it
 
   // ============================================================
   // # 🏷️ 🧩  WHICH LINE BELONGS TO WHICH MEASURE
@@ -321,17 +338,17 @@
   // ============================================================
   // # 🪨 🔗  GRIT, WHICH IS EVENNESS AND NOT AN AVERAGE
   // # 🔤 JavaScript
-  // # 🎯 The share of days on which EVERY one of the four measures
-  // #    cleared the floor, the longest run of them, and which
-  // #    measure is the weakest of the four
+  // # 🎯 The share of days on which at least three of the four
+  // #    measures cleared the floor, the longest run of them, and
+  // #    which measure is the weakest of the four
   // # 🔗 An average of the four would be a fifth copy of what the
   // #    other cards already say, and it would hide the thing this
-  // #    card exists to show: a month that was strong in one corner
-  // #    and collapsed in another. The `every one of them` test is
+  // #    card exists to show: a month strong in one corner and
+  // #    collapsed in another. Counting how many CLEAR THE LINE is
   // #    what makes it a different number -- a day rich in worship
-  // #    and empty of everything else does not count. A day is only
-  // #    counted when all four HAVE a value: a measure with no
-  // #    answer that day is not evidence of commitment
+  // #    and empty of everything else still does not count. A
+  // #    measure with no answer that day counts as not cleared: no
+  // #    answer is not evidence of commitment
   // ============================================================
   function grit(loveOut, bodyOut, mindOut, studyOut, rows) {
     const pick = (series, date) => series.find(d => d.date === date)?.value ?? null;
@@ -343,7 +360,7 @@
         pick(mindOut.daily, r.date),
         pick(studyOut.daily, r.date)
       ];
-      return four.every(v => v !== null && v >= FLOOR);
+      return four.filter(v => v !== null && v >= FLOOR).length >= NEED;
     });
 
     const ranked = [
@@ -362,7 +379,7 @@
       longest: longestRun(flags),
       weakest: ranked[0] || null,
       ranked,
-      floor: FLOOR,
+      floor: FLOOR, need: NEED,
       daily: rows.map((r, k) => ({ date: r.date, day: r.day, weekday: r.weekday, value: flags[k] ? 1 : 0 }))
     };
   }
@@ -399,5 +416,5 @@
     };
   }
 
-  window.CheckMeMetrics = { WEIGHTS, FLOOR, kinds, lineStats, monthRows, forMonth };
+  window.CheckMeMetrics = { WEIGHTS, FLOOR, NEED, kinds, lineStats, monthRows, forMonth };
 })();
