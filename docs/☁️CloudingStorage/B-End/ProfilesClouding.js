@@ -153,24 +153,31 @@
   // #    Drive. The table rules let each user touch their own row only.
   // #    Only the list at the end leaves this file, and the screen file
   // #    calls it: one name instead of fifty
+  // #    The table is NAMED here once. CheckMe shares one database with
+  // #    MyTerm, because the free plan allows two live projects and both
+  // #    slots were taken, so the two sites are kept apart by the table
+  // #    they touch and nothing else. When CheckMe gets a project of its
+  // #    own, this one line and the two values in the accounts file are
+  // #    the whole move
   // ============================================================
+  const TABLE = 'checkme_profiles';
   const db = () => window.CheckMeAuth.db;
   const me = async () => (await db().auth.getUser()).data.user;
   const now = () => new Date().toISOString();
 
   const loadProfile = async () => {
     const user = await me();
-    return user ? (await db().from('profiles').select('*').eq('id', user.id).maybeSingle()).data : null;
+    return user ? (await db().from(TABLE).select('*').eq('id', user.id).maybeSingle()).data : null;
   };
 
   const savePlace = async (name, fileId) => {
     const user = await me();
-    if (user) await db().from('profiles').upsert({ id: user.id, drive_folder_name: name, drive_file_id: fileId, updated_at: now() });
+    if (user) await db().from(TABLE).upsert({ id: user.id, drive_folder_name: name, drive_file_id: fileId, updated_at: now() });
   };
 
   const forgetPlace = async () => {
     const user = await me();
-    if (user) await db().from('profiles').update({ drive_folder_name: null, drive_file_id: null, updated_at: now() }).eq('id', user.id);
+    if (user) await db().from(TABLE).update({ drive_folder_name: null, drive_file_id: null, updated_at: now() }).eq('id', user.id);
   };
 
   window.CheckMeCloud = {

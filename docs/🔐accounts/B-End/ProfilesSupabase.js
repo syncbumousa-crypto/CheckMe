@@ -8,31 +8,32 @@
 // #    key below is the public one, so it is safe to show: what keeps
 // #    the data safe is the rules on the service, not this key. All the
 // #    names sit inside one wrapper, so only CheckMeAuth leaves this file
-// #    The two values are CheckMe's OWN project, never MyTerm's: the two
-// #    sites sit on one GitHub Pages address, and one project for both
-// #    would make a login on either a login on the other. A different
-// #    project means a different store key, so the two cannot mix
 // ============================================================
 (() => {
-  const SERVICE_URL = 'PASTE_CHECKME_SUPABASE_URL';
-  const PUBLIC_KEY = 'PASTE_CHECKME_PUBLISHABLE_KEY';
+  const SERVICE_URL = 'https://qpxltggjchspcmqwibqg.supabase.co';
+  const PUBLIC_KEY = 'sb_publishable_2Zhv75beNB67TjU4FzuKow_usYx7HBP';
 
-  // --- An unfilled value has to SAY SO on the page. Left to itself the
-  // --- line below throws, the two screen files then read a name that was
-  // --- never made, and every throw after that lands in a promise nobody
-  // --- is waiting on -- so the visitor gets a page with two buttons that
-  // --- answer nothing and no reason anywhere. One visible line instead
-  if (SERVICE_URL.startsWith('PASTE_') || PUBLIC_KEY.startsWith('PASTE_')) {
-    document.getElementById('choice')?.setAttribute('hidden', '');
-    const say = document.createElement('p');
-    say.className = 'note';
-    say.textContent = 'مفاتيح Supabase لم تُركَّب بعد. ضعها في ' +
-      '🔐accounts/B-End/ProfilesSupabase.js من مشروع CheckMe في Supabase.';
-    document.body.prepend(say);
-    return;
-  }
-
-  const db = supabase.createClient(SERVICE_URL, PUBLIC_KEY);
+  // ============================================================
+  // # 🚪 🚪  TWO SITES, ONE DATABASE, TWO DOORS
+  // # 🔤 JavaScript
+  // # 🎯 Gives this site its own name for the session it keeps in the
+  // #    browser, instead of the one the library picks by itself
+  // # 🔗 This is the whole reason the line exists. The two values above
+  // #    are MyTerm's project, shared because the free plan allows two
+  // #    live projects and both slots were taken. The library names the
+  // #    stored session after the PROJECT, so without this line both
+  // #    sites would reach for the same key -- and MyTerm and CheckMe
+  // #    sit on one GitHub Pages address, which means one browser store
+  // #    between them. A login on either would then be a login on the
+  // #    other, and a logout would throw the visitor out of both. With
+  // #    a name of its own the session is this site's alone. What is
+  // #    still shared on purpose is the LIST OF ACCOUNTS: one email and
+  // #    password opens both sites. What is never shared is the data,
+  // #    which lives in its own table and in the user's own Drive
+  // ============================================================
+  const db = supabase.createClient(SERVICE_URL, PUBLIC_KEY, {
+    auth: { storageKey: 'checkme.auth' }
+  });
 
   window.CheckMeAuth = {
     db,
