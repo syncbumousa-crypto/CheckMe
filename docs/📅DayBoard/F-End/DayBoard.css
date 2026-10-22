@@ -1,0 +1,533 @@
+/* ============================================================ */
+/* # 🎨 🧮  THE COLOURS THE BOARD IS MADE OF */
+/* # 🔤 CSS */
+/* # 🎯 Names every colour once, so the whole board can be re-tuned */
+/* #    from one place instead of hunting through rules */
+/* # 🔗 The ground is darker than the old flat gray on purpose. Thirty */
+/* #    squares a row is a lot of ink, and a done square has to carry */
+/* #    its own colour: on a mid gray it goes muddy, on a dark ground */
+/* #    it reads at a glance from across the room. Each group gets a */
+/* #    HUE, not a colour, and every state of that group is made from */
+/* #    it -- so a group can be re-coloured by one number */
+/* ============================================================ */
+:root {
+  --ink: #eef1f5;
+  --ink-dim: #9aa3b0;
+  --ink-faint: #6b7380;
+
+  --ground: #23262b;
+  --surface: #2b2f35;
+  --surface-2: #32373e;
+  --line: #3d434b;
+  --line-soft: #343a41;
+
+  --cell-none: #2e333a;
+  --cell-miss: #322c31;
+  --miss-mark: #6a5a63;
+
+  --today: #ffd479;
+  --radius: 7px;
+}
+
+/* ============================================================ */
+/* # 🏠 📐  THE PAGE THE BOARD SITS IN */
+/* # 🔤 CSS */
+/* # 🎯 Turns the page from a box in the middle into a full screen the */
+/* #    board can fill, and keeps a gutter at every width */
+/* # 🔗 shell.css centres the body with flex, which is right for a */
+/* #    panel of three buttons and wrong for a table a year wide: the */
+/* #    centring squeezes it and the sticky columns stop sticking. So */
+/* #    the body is turned back into a plain block HERE rather than in */
+/* #    the shell, because the panels still want the shell's centring */
+/* #    and they get it from the sheet rule further down */
+/* ============================================================ */
+body.has-board {
+  display: block;
+  background: var(--ground);
+  color: var(--ink);
+  min-height: 100%;
+}
+
+.board {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-block: 14px 28px;
+  padding-inline: 16px;
+  box-sizing: border-box;
+}
+
+/* ============================================================ */
+/* # 🔝 🧭  THE STRIP ABOVE THE GRID */
+/* # 🔤 CSS */
+/* # 🎯 The year and its arrows, the share done so far, the twelve */
+/* #    month buttons, and the way in to the account */
+/* # 🔗 It wraps instead of scrolling, so on a phone the month buttons */
+/* #    fall onto their own lines and nothing is pushed off the edge. */
+/* #    The grid below is the only thing allowed to scroll sideways */
+/* ============================================================ */
+.board-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+}
+
+.year-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.year-now {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  min-width: 4ch;
+  text-align: center;
+}
+
+.step {
+  font: inherit;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  line-height: 1;
+}
+
+.step:hover { background: var(--surface-2); }
+
+.tally {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+}
+
+.tally b { font-size: 1.1rem; }
+.tally span { font-size: 0.8rem; color: var(--ink-dim); }
+
+.months {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-inline-start: auto;
+}
+
+.month-chip {
+  font: inherit;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink-dim);
+  cursor: pointer;
+}
+
+.month-chip:hover { background: var(--surface-2); color: var(--ink); }
+.month-chip.is-now { border-color: var(--today); color: var(--ink); }
+.month-chip em { font-style: normal; color: var(--ink-faint); font-size: 0.72rem; }
+
+/* ============================================================ */
+/* # 📜 🪟  THE ONE THING THAT SCROLLS SIDEWAYS */
+/* # 🔤 CSS */
+/* # 🎯 Holds the grid, and lets it slide left and right inside its */
+/* #    own frame */
+/* # 🔗 Thirty squares plus the month, the day and the result cannot */
+/* #    fit a phone, and a page that scrolls sideways as a whole is */
+/* #    broken. So the sliding is penned in here, and the month and */
+/* #    day columns are pinned to the near edge so a row never loses */
+/* #    its name no matter how far the eye travels */
+/* ============================================================ */
+.grid-wrap {
+  overflow: auto;
+  max-height: calc(100vh - 150px);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+table.year {
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.78rem;
+}
+
+/* ============================================================ */
+/* # 🧷 🧊  THE HEAD AND THE TWO PINNED COLUMNS */
+/* # 🔤 CSS */
+/* # 🎯 Keeps the three head rows on top and the month and day columns */
+/* #    at the right while everything else slides under them */
+/* # 🔗 `right` is written out rather than the logical name because */
+/* #    the page is right to left and the near edge IS the right one, */
+/* #    and reading the rule should not need a second translation. */
+/* #    The pinned head cells need a background of their own or the */
+/* #    squares show through them, and a z-index ladder: the corner */
+/* #    where a pinned row crosses a pinned column must beat both */
+/* ============================================================ */
+table.year thead th {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: var(--surface-2);
+  color: var(--ink-dim);
+  font-weight: 600;
+  padding: 5px 4px;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+
+table.year thead tr:nth-child(2) th { top: 26px; }
+table.year thead tr:nth-child(3) th { top: 50px; }
+
+th.month, th.day {
+  position: sticky;
+  z-index: 4;
+  background: var(--surface);
+}
+
+th.month { right: 0; width: 46px; }
+th.day { right: 46px; width: 104px; }
+
+thead th.month, thead th.day, thead th.res-head {
+  z-index: 6;
+  background: var(--surface-2);
+}
+
+/* ============================================================ */
+/* # 🏷️ ✍️  HOW A COLUMN SAYS WHAT IT IS */
+/* # 🔤 CSS */
+/* # 🎯 The group names, the band names under them, and the short item */
+/* #    labels under those */
+/* # 🔗 Each group is tinted with its own hue so the eye finds a group */
+/* #    before it reads a word. The item label is turned on its side: */
+/* #    a square is wide enough for one Arabic letter and no more, and */
+/* #    turning the word is the only way to keep a readable name over */
+/* #    a column this narrow without making the column wider than the */
+/* #    thing it describes */
+/* ============================================================ */
+th.group {
+  font-size: 0.8rem;
+  letter-spacing: 0.01em;
+  color: hsl(var(--hue) 55% 72%) !important;
+  background: hsl(var(--hue) 30% 22%) !important;
+  border-inline-start: 1px solid var(--line);
+}
+
+th.band {
+  font-size: 0.72rem;
+  color: var(--ink-faint);
+  border-inline-start: 1px solid var(--line-soft);
+}
+
+th.item {
+  height: 72px;
+  padding: 0;
+  vertical-align: bottom;
+  border-inline-start: 1px solid var(--line-soft);
+}
+
+th.item span {
+  display: inline-block;
+  transform: rotate(-90deg);
+  transform-origin: center;
+  white-space: nowrap;
+  font-size: 0.72rem;
+  color: var(--ink-dim);
+}
+
+th.item.band-start { border-inline-start: 1px solid var(--line); }
+th.group.first, th.band.first, th.item.group-start { border-inline-start: 2px solid var(--line); }
+
+/* ============================================================ */
+/* # 🗓️ 📏  A ROW IS A DAY */
+/* # 🔤 CSS */
+/* # 🎯 The month block down the right, the date, the weekday, and the */
+/* #    line that marks today */
+/* # 🔗 The month name is written once for the whole month and turned */
+/* #    on its side, which is what the owner's sheet does with a */
+/* #    merged cell. Today is marked with a line down its near edge */
+/* #    rather than a filled row, because a filled row would fight */
+/* #    thirty coloured squares and lose */
+/* ============================================================ */
+th.month {
+  border-top: 2px solid var(--line);
+  color: var(--ink);
+  font-size: 0.9rem;
+}
+
+/* The name travels with its month. The cell spans all thirty one
+   days, so once the eye is past the first week the label itself has
+   scrolled off the top and the column reads as a blank strip -- which
+   is the one thing this column exists not to be. Making the WORD
+   stick, rather than the cell, keeps it beside whatever day is being
+   looked at and hands it over the moment the next month arrives. The
+   offset is measured from the real head after drawing, not guessed,
+   because the head is three rows of different heights */
+th.month span {
+  position: sticky;
+  top: calc(var(--head-h, 140px) + 8px);
+  display: inline-block;
+  transform: rotate(-90deg);
+  white-space: nowrap;
+}
+
+th.day {
+  text-align: start;
+  padding: 0 10px;
+  font-weight: 500;
+  color: var(--ink-dim);
+  border-bottom: 1px solid var(--line-soft);
+  white-space: nowrap;
+}
+
+th.day b { color: var(--ink); font-size: 0.85rem; }
+th.day i { font-style: normal; font-size: 0.72rem; }
+
+tr.is-today th.day { box-shadow: inset 3px 0 0 var(--today); }
+tr.is-today th.day b { color: var(--today); }
+tr.is-friday th.day i { color: hsl(158 45% 60%); }
+
+/* ============================================================ */
+/* # 🟩 ⬜  THE THREE ANSWERS A SQUARE CAN HOLD */
+/* # 🔤 CSS */
+/* # 🎯 Done, missed, and never answered: three looks that are told */
+/* #    apart by fill, by mark and by edge, not by colour alone */
+/* # 🔗 Done is filled with its group's hue. Missed is a dim square */
+/* #    with a bar across it. Never answered is flat and empty. They */
+/* #    differ in SHAPE as well as colour, so the board still reads */
+/* #    for an eye that does not separate red from green, and so it */
+/* #    survives being printed or screenshotted in gray */
+/* ============================================================ */
+td.cell {
+  width: 26px;
+  height: 22px;
+  padding: 1px;
+  border-inline-start: 1px solid var(--line-soft);
+  border-bottom: 1px solid var(--line-soft);
+  cursor: pointer;
+}
+
+td.cell.group-start { border-inline-start: 2px solid var(--line); }
+td.cell.band-start { border-inline-start: 1px solid var(--line); }
+
+td.cell::after {
+  content: "";
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 4px;
+  background: var(--cell-none);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+
+td.cell[data-v="1"]::after {
+  background: hsl(var(--hue) 58% 46%);
+  box-shadow: inset 0 0 0 1px hsl(var(--hue) 60% 62%);
+}
+
+/* A short dash lying down, not a bar standing up. The first try drew
+   an upright stripe in a strong mauve, and since most squares in a
+   real year are `not done`, the whole board read as a field of pink
+   with the done days lost inside it. The board has to be honest about
+   a missed thing and still let a done thing be the loudest mark on
+   the page, so the miss keeps its own unmistakable SHAPE -- a struck
+   through line -- and gives up its brightness */
+td.cell[data-v="0"]::after {
+  background-color: var(--cell-miss);
+  background-image: linear-gradient(var(--miss-mark), var(--miss-mark));
+  background-size: 44% 2px;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+td.cell:hover::after { outline: 2px solid var(--ink-dim); outline-offset: -1px; }
+td.cell:focus-visible { outline: none; }
+td.cell:focus-visible::after { outline: 2px solid var(--today); outline-offset: -1px; }
+
+/* ============================================================ */
+/* # 🧮 📊  THE RESULT OF THE DAY */
+/* # 🔤 CSS */
+/* # 🎯 How many of the thirty, and the same thing again as a share */
+/* #    and as a bar */
+/* # 🔗 The number and the share are both shown because the owner's */
+/* #    own sheet shows both, and the bar is added because a column of */
+/* #    bars is the one thing in the row that can be read without */
+/* #    reading: a good week and a bad week have different shapes */
+/* ============================================================ */
+/* Read left to right, inside a page that reads right to left. `6 / 30`
+   dropped into Arabic text comes out of the bidi rules as `30 / 6`,
+   and the day the owner did six things out of thirty showed as thirty
+   out of six. The screenshot is what caught it. Turning the direction
+   round for this one cell, and walling it off so the change cannot
+   leak into the Arabic beside it, is what puts the numerator back in
+   front of the slash */
+td.res {
+  padding: 0 8px;
+  border-inline-start: 2px solid var(--line);
+  border-bottom: 1px solid var(--line-soft);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-dim);
+  direction: ltr;
+  unicode-bidi: isolate;
+  text-align: end;
+}
+
+td.res b { color: var(--ink); }
+
+td.bar {
+  width: 70px;
+  padding: 0 8px 0 0;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+td.bar div {
+  height: 7px;
+  border-radius: 999px;
+  background: hsl(158 50% 45%);
+  min-width: 2px;
+}
+
+/* ============================================================ */
+/* # 🔑 🪟  THE ACCOUNT, OUT OF THE WAY */
+/* # 🔤 CSS */
+/* # 🎯 Puts the sign in panels and the Drive panels in a sheet over */
+/* #    the board, and gives the strip above a button that opens it */
+/* # 🔗 The board is the home screen now, so the account cannot be the */
+/* #    first thing the page shows. The panels themselves are not */
+/* #    touched: they keep their ids and their own file keeps driving */
+/* #    them. This only decides WHERE they appear, and brings back the */
+/* #    centring that the body gave up for the grid */
+/* ============================================================ */
+.who-btn {
+  font: inherit;
+  font-size: 0.8rem;
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink-dim);
+  cursor: pointer;
+}
+
+.who-btn:hover { background: var(--surface-2); color: var(--ink); }
+.who-btn.is-off { border-color: hsl(38 60% 50%); color: hsl(38 70% 72%); }
+
+#account-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(16, 18, 21, 0.72);
+}
+
+#account-sheet .box {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+
+.sheet-close {
+  position: absolute;
+  top: 14px;
+  inset-inline-end: 16px;
+  font: inherit;
+  font-size: 1.4rem;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  line-height: 1;
+}
+
+/* ============================================================ */
+/* # 📖 🗝️  THE LEGEND */
+/* # 🔤 CSS */
+/* # 🎯 Spells out the three squares, and lists every group with its */
+/* #    items in full words */
+/* # 🔗 The grid shortens every name to fit a narrow column, so the */
+/* #    full ones have to live somewhere on the page. Tooltips alone */
+/* #    would not do: a phone has no hover */
+/* ============================================================ */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 22px;
+  font-size: 0.76rem;
+  color: var(--ink-dim);
+}
+
+.legend-group { max-width: 260px; }
+.legend-group h4 {
+  margin: 0 0 3px;
+  font-size: 0.78rem;
+  color: hsl(var(--hue) 55% 72%);
+}
+
+.keys { display: flex; gap: 14px; align-items: center; }
+.keys i {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  vertical-align: -2px;
+  margin-inline-end: 5px;
+}
+
+.keys .k-done { background: hsl(158 58% 46%); }
+.keys .k-miss {
+  background:
+    linear-gradient(to left, transparent 42%, var(--miss-mark) 42%, var(--miss-mark) 58%, transparent 58%),
+    var(--cell-miss);
+}
+.keys .k-none { background: var(--cell-none); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08); }
+
+/* ============================================================ */
+/* # 📱 🤏  ON A SMALL SCREEN */
+/* # 🔤 CSS */
+/* # 🎯 Shrinks the squares and the pinned columns so a phone still */
+/* #    shows a useful slice of the row */
+/* # 🔗 Only sizes are touched, never whether a thing is there: a rule */
+/* #    that hides half the board on a narrow screen would make the */
+/* #    page a different page, and the owner reads this one on a phone */
+/* #    in the evening and on a desk in the morning */
+/* ============================================================ */
+@media (max-width: 760px) {
+  .board { padding-inline: 10px; }
+  .grid-wrap { max-height: calc(100vh - 210px); }
+  td.cell { width: 22px; height: 20px; }
+  th.day { width: 78px; }
+  th.day b { font-size: 0.78rem; }
+  td.bar { display: none; }
+  .months { margin-inline-start: 0; }
+}
+
+/* ============================================================ */
+/* # 0️⃣ ➖  THE DASH OF A DAY NOT OPENED */
+/* # 🔤 CSS */
+/* # 🎯 Dims the dash that stands where a result would be on a day */
+/* #    that holds no answer */
+/* # 🔗 It has to be fainter than a real result, or three hundred */
+/* #    empty days would read as loudly as the days that were lived */
+/* ============================================================ */
+td.res .none {
+  color: var(--ink-faint);
+}
