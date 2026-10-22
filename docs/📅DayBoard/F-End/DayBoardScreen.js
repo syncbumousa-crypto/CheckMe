@@ -33,6 +33,30 @@
 
   let year = nowLocal.getFullYear();
   let board = B.read();
+
+  // ============================================================
+  // # 🍂 🔴  WHAT A PAST BLANK IS DRAWN AS
+  // # 🔤 JavaScript
+  // # 🎯 Turns the stored value of one square into the value shown
+  // #    on screen: a blank on a day already past is drawn as not
+  // #    done
+  // # 🔗 Only the DRAWING changes. The square underneath is still
+  // #    blank, so clicking it runs the ordinary round -- blank to
+  // #    done to not-done and back -- and the third press returns
+  // #    it to the red it was showing before anyone touched it.
+  // #    The rule starts at the first day ever written, because a
+  // #    board not yet in use is not a board being failed
+  // ============================================================
+  const TODAY_ISO = B.todayISO();
+  let ripeFrom = null;
+
+  const findRipeFrom = () => {
+    const written = Object.keys(board.days).filter(d => board.days[d] !== B.blank()).sort();
+    ripeFrom = written[0] || null;
+  };
+
+  const shown = (date, ch) =>
+    (ch === B.NONE && ripeFrom && date >= ripeFrom && date < TODAY_ISO) ? B.MISS : ch;
   let place = null;
   let saveTimer = null, pushTimer = null;
 
@@ -159,7 +183,7 @@
     let cells = '';
     for (let i = 0; i < B.N; i++) {
       cells += `<td class="cell g-${groupOf[i]}${edgeOf(i)}" data-d="${date}" data-i="${i}"` +
-        ` data-v="${line[i]}" tabindex="-1" title="${esc(B.ITEMS[i].label)}"></td>`;
+        ` data-v="${shown(date, line[i])}" tabindex="-1" title="${esc(B.ITEMS[i].label)}"></td>`;
     }
 
     return `<tr class="row${flags}" data-d="${date}">` +
@@ -230,7 +254,7 @@
     const value = B.next(line[i]);
     const updated = B.put(line, i, value);
     if (updated === B.blank()) delete board.days[date]; else board.days[date] = updated;
-    cell.dataset.v = value;
+    cell.dataset.v = shown(date, value);
     save();
   }
 
@@ -298,7 +322,7 @@
   // #    scrolled to the top of the box lands underneath it unseen
   // ============================================================
   function bring(el, smooth) {
-    const wrap = $('grid-wrap');
+    const wrap = $("grid-wrap");
     if (!wrap || !el) return;
     const headH = wrap.querySelector('thead').getBoundingClientRect().height;
     const offset = el.getBoundingClientRect().top - wrap.getBoundingClientRect().top;
@@ -308,7 +332,8 @@
   const goToToday = smooth => bring(document.querySelector(`tr.row[data-d="${TODAY}"]`), smooth);
 
   function draw() {
-    const wrap = $('grid-wrap');
+    findRipeFrom();
+    const wrap = $("grid-wrap");
     wrap.innerHTML = grid();
 
     // Measured, not guessed: the three head rows are different heights

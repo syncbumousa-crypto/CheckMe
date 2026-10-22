@@ -217,9 +217,57 @@
     return Object.keys(file.days).length;
   };
 
+  // ============================================================
+  // # 🍂 🔴  A DAY THAT HAS GONE BY WAS NOT `NOT RECORDED`
+  // # 🔤 JavaScript
+  // # 🎯 Gives back a READ-ONLY copy of the days in which every
+  // #    blank square on a day already past counts as not done
+  // # 🔗 The rule the owner asked for, and the one place it lives.
+  // #    A blank means `I have not written this down`, which is
+  // #    honest about today and a fiction about a day that is over:
+  // #    the day ended, and what was not marked done was not done.
+  // #    It is applied on the way OUT and never written back, for
+  // #    two reasons. His file stays truthful about what his own
+  // #    hand typed. And the months he has not imported yet are
+  // #    still BLANK underneath, so when their real answers arrive
+  // #    they simply land -- whereas a board filled in with
+  // #    `missed` would have to be fought to make room for them.
+  // #    It starts at the first day he ever recorded, never at the
+  // #    first of January: before that the board was not in use,
+  // #    and a board not in use is not a failure to use it
+  // ============================================================
+  const nextDate = iso => {
+    const d = new Date(`${iso}T00:00:00Z`);
+    d.setUTCDate(d.getUTCDate() + 1);
+    return d.toISOString().slice(0, 10);
+  };
+
+  const todayISO = () => {
+    const n = new Date();
+    const p = x => String(x).padStart(2, '0');
+    return `${n.getFullYear()}-${p(n.getMonth() + 1)}-${p(n.getDate())}`;
+  };
+
+  const ripen = (days, today) => {
+    const stop = today || todayISO();
+    const written = Object.keys(days).filter(d => clean(days[d]) !== blank()).sort();
+    const out = {};
+    for (const [date, line] of Object.entries(days)) out[date] = clean(line);
+    if (!written.length) return out;
+
+    // Every day from the first one he ever wrote up to YESTERDAY,
+    // whether or not it exists in the store: a day with no row at
+    // all is the emptiest kind of past day, not an absent one
+    for (let d = written[0]; d < stop; d = nextDate(d)) {
+      out[d] = [...(out[d] || blank())].map(c => (c === NONE ? MISS : c)).join('');
+    }
+    return out;
+  };
+
   window.CheckMeDayBoard = {
     DONE, MISS, NONE, N, GROUPS, ITEMS,
     blank, clean, at, put, score, next,
-    read, write, KEY, pull, push
+    read, write, KEY, pull, push,
+    ripen, todayISO
   };
 })();
