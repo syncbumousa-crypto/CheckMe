@@ -74,10 +74,14 @@ body {
   text-align: center;
 }
 
+/* Moved to the physical left. It used to ask for the inline start,
+   which on a right to left page is the RIGHT edge -- the same corner
+   the account button now lives in, and two things in one corner is
+   one thing covering another */
 .build {
   position: fixed;
   bottom: 8px;
-  inset-inline-start: 10px;
+  left: 10px;
   margin: 0;
   font-size: 0.7rem;
   letter-spacing: 0.05em;

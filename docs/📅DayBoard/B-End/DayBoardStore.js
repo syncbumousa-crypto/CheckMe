@@ -15,12 +15,16 @@
   // The labels are the owner's own words, kept as he writes them. The
   // short one is what fits in a column head three letters wide; the
   // long one is what the tooltip and the legend say
+  // The five hues keep away from green and from red on purpose. Those
+  // two now belong to the squares and mean done and not done, and a
+  // group whose heading was green would be read as a column of things
+  // already finished before a single square was looked at
   const GROUPS = [
     { id: 'morning', label: 'الصبحيات', hue: 38 },
-    { id: 'evening', label: 'المسائيات', hue: 258 },
-    { id: 'faith', label: 'دينية على طول اليوم', hue: 158 },
-    { id: 'life', label: 'حياتية على طول اليوم', hue: 199 },
-    { id: 'study', label: 'دراسية', hue: 0 }
+    { id: 'evening', label: 'المسائيات', hue: 280 },
+    { id: 'faith', label: 'دينية على طول اليوم', hue: 196 },
+    { id: 'life', label: 'حياتية على طول اليوم', hue: 325 },
+    { id: 'study', label: 'دراسية', hue: 62 }
   ];
 
   // ============================================================

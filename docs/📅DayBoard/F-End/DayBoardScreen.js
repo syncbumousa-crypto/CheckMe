@@ -285,20 +285,6 @@
   }
 
   // ============================================================
-  // # 🧭 🔝  THE STRIP, AND GETTING TO A MONTH
-  // # 🔤 JavaScript
-  // # 🎯 Draws the year arrows and the twelve month buttons, and
-  // #    scrolls the grid where asked
-  // # 🔗 Twelve buttons are drawn whether or not a month holds
-  // #    anything, because the owner asked for all the months of the
-  // #    year to be there. They carry no figure of their own: every
-  // #    counted thing was taken off the page on purpose
-  // ============================================================
-  const chips = () => MONTHS.map((name, k) =>
-    `<button class="month-chip" type="button" id="chip-${k + 1}" data-m="${k + 1}">${name}</button>`
-  ).join('');
-
-  // ============================================================
   // # 🎯 📍  BRINGING A ROW OUT FROM UNDER THE HEAD
   // # 🔤 JavaScript
   // # 🎯 Scrolls the grid so a given element sits just below the three
@@ -319,23 +305,9 @@
     wrap.scrollTo({ top: wrap.scrollTop + offset - headH - 8, behavior: smooth ? 'smooth' : 'auto' });
   }
 
-  const markChip = m => [...document.querySelectorAll('.month-chip')].forEach(c =>
-    c.classList.toggle('is-now', Number(c.dataset.m) === m));
-
-  function scrollToMonth(m, smooth) {
-    bring($(`m-${m}`), smooth);
-    markChip(m);
-  }
-
-  function scrollToToday() {
-    const thisYear = nowLocal.getFullYear();
-    if (year !== thisYear) { year = thisYear; draw(); }
-    bring(document.querySelector(`tr.row[data-d="${TODAY}"]`), true);
-    markChip(nowLocal.getMonth() + 1);
-  }
+  const goToToday = smooth => bring(document.querySelector(`tr.row[data-d="${TODAY}"]`), smooth);
 
   function draw() {
-    $('year-now').textContent = year;
     const wrap = $('grid-wrap');
     wrap.innerHTML = grid();
 
@@ -346,7 +318,7 @@
     wrap.style.setProperty('--head-h', `${Math.round(headBox.getBoundingClientRect().height)}px`);
 
     wireGrid(wrap);
-    $('go-today').onclick = scrollToToday;
+    $('go-today').onclick = () => goToToday(true);
   }
 
   // ============================================================
@@ -387,7 +359,7 @@
       const got = await B.pull(place.drive_file_id);
       board = B.read();
       draw();
-      scrollToMonth(nowLocal.getMonth() + 1);
+      goToToday(false);
       const n = await B.push(place.drive_file_id);
       badge('drive');
       say(`متّصل بدرايفك: ${got.inFile} يومًا في الملفّ، و${n} يومًا بعد الدمج.` +
@@ -426,8 +398,8 @@
   // ============================================================
   // # 🚀 🧩  PUTTING IT ON THE PAGE
   // # 🔤 JavaScript
-  // # 🎯 Writes the strip, draws the year, wires everything, lands the
-  // #    view on this month, and then reaches for Drive
+  // # 🎯 Draws the year, wires everything, lands the view on today,
+  // #    and then reaches for Drive
   // # 🔗 The board is drawn from the browser copy FIRST and the Drive
   // #    is asked afterwards. The other order would leave the owner
   // #    looking at nothing while the network is thought about, and
@@ -439,32 +411,9 @@
   function start() {
     document.body.classList.add('has-board');
     hueStyle();
-
-    $('board-top').innerHTML =
-      '<div class="year-nav">' +
-      '<button class="step" type="button" id="year-back" title="السنة السابقة">‹</button>' +
-      '<span class="year-now" id="year-now"></span>' +
-      '<button class="step" type="button" id="year-next" title="السنة التالية">›</button>' +
-      '</div>' +
-      '<button class="who-btn" type="button" id="who-btn"></button>' +
-      `<div class="months">${chips()}</div>`;
-
-    $('legend').innerHTML =
-      '<span><i class="k-done"></i>تم</span>' +
-      '<span><i class="k-miss"></i>ماش</span>' +
-      '<span><i class="k-none"></i>لم يُسجَّل</span>';
-
     draw();
     wireAccount();
-
-    $('year-back').onclick = () => { year--; draw(); scrollToMonth(1); };
-    $('year-next').onclick = () => { year++; draw(); scrollToMonth(1); };
-    $('board-top').addEventListener('click', e => {
-      const chip = e.target.closest('.month-chip');
-      if (chip) scrollToMonth(Number(chip.dataset.m), true);
-    });
-
-    scrollToMonth(nowLocal.getMonth() + 1);
+    goToToday(false);
     connectDrive();
   }
 

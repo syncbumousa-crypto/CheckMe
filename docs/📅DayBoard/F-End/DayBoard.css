@@ -49,81 +49,24 @@ body.has-board {
 .board {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding-block: 14px 28px;
+  gap: 8px;
+  padding-block: 12px 8px;
   padding-inline: 16px;
   box-sizing: border-box;
 }
 
 /* ============================================================ */
-/* # 🔝 🧭  THE STRIP ABOVE THE GRID */
+/* # 🚫 🔝  NOTHING SITS ABOVE THE GRID */
 /* # 🔤 CSS */
-/* # 🎯 The year and its arrows, the twelve month buttons, and the way */
-/* #    in to the account */
-/* # 🔗 It wraps instead of scrolling, so on a phone the month buttons */
-/* #    fall onto their own lines and nothing is pushed off the edge. */
-/* #    The grid below is the only thing allowed to scroll sideways */
+/* # 🎯 The page is the board and the board starts at the top */
+/* # 🔗 There used to be a strip here carrying the year, its arrows, */
+/* #    twelve month buttons and the account. All of it is gone at the */
+/* #    owner's word: the grid is what he opens the page to see, and */
+/* #    every row of furniture above it was a row of days pushed off */
+/* #    the bottom. What those buttons did is not lost, it moved: the */
+/* #    word in the corner of the head goes to today, and the account */
+/* #    waits in the far corner where it is reached once and forgotten */
 /* ============================================================ */
-.board-top {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px 14px;
-}
-
-.year-nav {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.year-now {
-  font-size: 1.5rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  min-width: 4ch;
-  text-align: center;
-}
-
-.step {
-  font: inherit;
-  width: 32px;
-  height: 32px;
-  border: 1px solid var(--line);
-  border-radius: 50%;
-  background: var(--surface);
-  color: var(--ink);
-  cursor: pointer;
-  line-height: 1;
-}
-
-.step:hover { background: var(--surface-2); }
-
-/* Packed tight against the near edge, with no pusher between them.
-   An `auto` margin used to shove the months to the far side, which on
-   a wide screen opened a band of nothing across the middle of the
-   strip with a lonely button at each end. Things that belong together
-   sit together, and the empty room is left over at the end where
-   empty room belongs */
-.months {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.month-chip {
-  font: inherit;
-  font-size: 0.8rem;
-  padding: 5px 12px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: var(--surface);
-  color: var(--ink-dim);
-  cursor: pointer;
-}
-
-.month-chip:hover { background: var(--surface-2); color: var(--ink); }
-.month-chip.is-now { border-color: var(--today); color: var(--ink); }
 
 /* ============================================================ */
 /* # 📜 🪟  THE ONE THING THAT SCROLLS SIDEWAYS */
@@ -138,7 +81,7 @@ body.has-board {
 /* ============================================================ */
 .grid-wrap {
   overflow: auto;
-  max-height: calc(100vh - 112px);
+  max-height: calc(100vh - 64px);
   border: 1px solid var(--line);
   border-radius: 12px;
   background: var(--surface);
@@ -185,12 +128,14 @@ table.year thead th {
 table.year thead tr:nth-child(2) th { top: 24px; }
 table.year thead tr:nth-child(3) th { top: 46px; }
 
-/* The two corner cells reach down all three head rows, and their one
-   word used to float in the middle of all that height with a hand's
-   width of nothing above and below it. Sat on the floor of the cell
-   it lines up with the first day instead, and the emptiness collects
-   in one place at the top where the eye skips it */
-table.year thead th.month, table.year thead th.day { vertical-align: bottom; }
+/* Centred in the cell it lives in, both ways. It was sat on the floor
+   of the cell for a while, to put it beside the first day; the owner
+   wants it in the middle of its own box instead, which is the plainer
+   rule and the one a reader can predict */
+table.year thead th.month, table.year thead th.day {
+  vertical-align: middle;
+  text-align: center;
+}
 
 /* Pressing the word in the corner goes to today. It is the one bit of
    the head that does something, so it is the one bit that says so */
@@ -231,8 +176,8 @@ table.year thead th.month, table.year thead th.day {
 /* # 🏷️ ✍️  EVERY COLUMN SAYS ITS WHOLE NAME */
 /* # 🔤 CSS */
 /* # 🎯 The group names, the band names under them, and the full item */
-/* #    name under those, written flat and wrapped over as many lines */
-/* #    as it takes */
+/* #    name under those, standing on end and wrapped over as many */
+/* #    lines as it takes */
 /* # 🔗 The first version turned each name on its side and cut it to */
 /* #    one letter, to keep a column the width of a square. It saved */
 /* #    room and cost the only thing that mattered: the owner could */
@@ -240,26 +185,42 @@ table.year thead th.month, table.year thead th.day {
 /* #    NAME needs and the square stretches to match it. The grid got */
 /* #    wider than a screen, which is what the sideways scroll is for */
 /* ============================================================ */
-th.group {
-  font-size: 0.82rem;
-  color: hsl(var(--hue) 45% 74%);
-  background: hsl(var(--hue) 26% 23%);
+/* One hue down each group's whole block, three steps of it. The group
+   name is the loudest, the band under it is the same colour held
+   back, and the item names are the same colour again at reading
+   strength on a ground barely lifted off the table. Before this the
+   three rows were three unrelated looks -- a tinted group, a gray
+   band and plain white names -- so nothing told the eye that a column
+   of names belonged to the heading two rows above it. The hues are
+   also the only colour in the head, which is what keeps them telling:
+   the squares below are green and red and nothing else */
+table.year thead th.group {
+  font-size: 0.84rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: hsl(var(--hue) 62% 78%);
+  background: hsl(var(--hue) 30% 25%);
   border-inline-start: 1px solid var(--line);
+  border-bottom: 1px solid hsl(var(--hue) 24% 32%);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-th.band {
+table.year thead th.band {
   font-size: 0.74rem;
-  color: var(--ink-faint);
+  font-weight: 600;
+  color: hsl(var(--hue) 34% 62%);
+  background: hsl(var(--hue) 20% 19%);
   border-inline-start: 1px solid var(--line-soft);
+  border-bottom: 1px solid var(--line-soft);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-th.item {
+table.year thead th.item {
+  background: hsl(var(--hue) 14% 16%);
   width: 30px;
   min-width: 30px;
   /* Found by trying, not by guessing: at a hundred and ten every one
@@ -282,7 +243,7 @@ th.item {
    left on, so the four longest names fold into two standing lines
    rather than making every column in the table as tall as the worst
    one of them */
-th.item > span {
+table.year thead th.item > span {
   display: flex;
   align-items: flex-start;
   justify-content: center;
@@ -296,11 +257,11 @@ th.item > span {
   font-size: 0.7rem;
   font-weight: 500;
   line-height: 1.25;
-  color: var(--ink);
+  color: hsl(var(--hue) 28% 84%);
 }
 
-th.item.band-start, th.band.band-start { border-inline-start: 1px solid var(--line); }
-th.item.group-start, th.band.group-start, th.group.group-start {
+table.year thead th.item.band-start, table.year thead th.band.band-start { border-inline-start: 1px solid var(--line); }
+table.year thead th.item.group-start, table.year thead th.band.group-start, table.year thead th.group.group-start {
   border-inline-start: 2px solid var(--line);
 }
 
@@ -402,10 +363,22 @@ td.cell:focus-visible::after { outline: 2px solid var(--today); outline-offset: 
 /* #    them. This only decides WHERE they appear, and brings back the */
 /* #    centring that the body gave up for the grid */
 /* ============================================================ */
+/* Parked in the far bottom corner. It is pressed once, on the day the
+   account is linked, and then it is only a light saying the year is
+   safe -- so it belongs where a light belongs and not across the top
+   of the thing it reports on */
+/* `right`, written out, and not the logical name. The page runs right
+   to left, so `inline-end` is the LEFT edge here, and asking for the
+   end put the button in the far bottom corner on the wrong side of
+   the screen. The corner wanted is the physical right one */
 .who-btn {
+  position: fixed;
+  bottom: 10px;
+  right: 14px;
+  z-index: 15;
   font: inherit;
-  font-size: 0.8rem;
-  padding: 6px 12px;
+  font-size: 0.78rem;
+  padding: 6px 13px;
   border: 1px solid var(--line);
   border-radius: 999px;
   background: var(--surface);
@@ -451,34 +424,14 @@ td.cell:focus-visible::after { outline: 2px solid var(--today); outline-offset: 
 }
 
 /* ============================================================ */
-/* # 📖 🗝️  WHAT THE THREE SQUARES MEAN */
+/* # 🚫 📖  NO KEY UNDER THE GRID */
 /* # 🔤 CSS */
-/* # 🎯 Three swatches and their words, under the grid */
-/* # 🔗 Short now that every column carries its own full name. The */
-/* #    long list of items that used to live here was only standing in */
-/* #    for a head that could not be read */
+/* # 🎯 The three swatches and their words are gone */
+/* # 🔗 Taken out at the owner's word, and it costs nothing here: */
+/* #    green and red are HIS marks, written by his own hand square by */
+/* #    square. A key explains a code a reader did not choose. This is */
+/* #    not one of those */
 /* ============================================================ */
-.legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 18px;
-  align-items: center;
-  font-size: 0.78rem;
-  color: var(--ink-dim);
-}
-
-.legend i {
-  display: inline-block;
-  width: 16px;
-  height: 12px;
-  border-radius: 3px;
-  vertical-align: -1px;
-  margin-inline-end: 6px;
-}
-
-.legend .k-done { background: var(--done); }
-.legend .k-miss { background: var(--miss); }
-.legend .k-none { background: var(--cell-none); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1); }
 
 /* ============================================================ */
 /* # 📱 🤏  ON A SMALL SCREEN */
@@ -492,9 +445,8 @@ td.cell:focus-visible::after { outline: 2px solid var(--today); outline-offset: 
 /* ============================================================ */
 @media (max-width: 760px) {
   .board { padding-inline: 10px; }
-  .grid-wrap { max-height: calc(100vh - 200px); }
+  .grid-wrap { max-height: calc(100vh - 64px); }
   td.cell, th.item { width: 26px; min-width: 26px; }
   th.day { width: 84px; }
   th.day b { font-size: 0.78rem; }
-  .months { margin-inline-start: 0; }
 }
