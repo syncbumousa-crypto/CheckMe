@@ -39,18 +39,56 @@
 /* #    the shell, because the panels still want the shell's centring */
 /* #    and they get it from the sheet rule further down */
 /* ============================================================ */
+/* `color-scheme` is the one line that makes the browser's OWN parts
+   dark: the scrollbars it draws for us, and the fields in the account
+   sheet. Without it a pale system bar sat down the side of a dark
+   board looking like a strip torn out of another page */
 body.has-board {
   display: block;
+  color-scheme: dark;
   background: var(--ground);
   color: var(--ink);
   min-height: 100%;
+}
+
+/* ============================================================ */
+/* # 🎚️ 🌑  THE BAR DOWN THE SIDE */
+/* # 🔤 CSS */
+/* # 🎯 Makes the grid's own scrollbar thin, dim and the colour of */
+/* #    the board it belongs to */
+/* # 🔗 Written twice because browsers disagree: the two `scrollbar-` */
+/* #    lines are the standard and Firefox obeys them, the `::-webkit` */
+/* #    rules are what Chrome reads. The thumb is painted through its */
+/* #    content box with a transparent border, which is the only way */
+/* #    to get a slim bar with room around it -- a plain narrow track */
+/* #    would sit tight against the grid and read as a column */
+/* ============================================================ */
+.grid-wrap {
+  scrollbar-width: thin;
+  scrollbar-color: #363b43 transparent;
+}
+
+.grid-wrap::-webkit-scrollbar { width: 12px; height: 12px; }
+.grid-wrap::-webkit-scrollbar-track { background: transparent; }
+.grid-wrap::-webkit-scrollbar-corner { background: transparent; }
+
+.grid-wrap::-webkit-scrollbar-thumb {
+  background: #363b43;
+  border: 3px solid transparent;
+  background-clip: content-box;
+  border-radius: 999px;
+}
+
+.grid-wrap::-webkit-scrollbar-thumb:hover {
+  background: #4a515b;
+  background-clip: content-box;
 }
 
 .board {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding-block: 12px 8px;
+  padding-block: 12px 46px;
   padding-inline: 16px;
   box-sizing: border-box;
 }
@@ -81,7 +119,7 @@ body.has-board {
 /* ============================================================ */
 .grid-wrap {
   overflow: auto;
-  max-height: calc(100vh - 64px);
+  max-height: calc(100vh - 102px);
   border: 1px solid var(--line);
   border-radius: 12px;
   background: var(--surface);
@@ -310,7 +348,21 @@ th.day i { font-style: normal; font-size: 0.72rem; }
 
 tr.is-today th.day { box-shadow: inset 3px 0 0 var(--today); }
 tr.is-today th.day b { color: var(--today); }
-tr.is-friday th.day i { color: hsl(158 45% 60%); }
+
+/* ============================================================ */
+/* # 📆 ➖  WHERE ONE WEEK ENDS */
+/* # 🔤 CSS */
+/* # 🎯 Draws a line under every Friday, all the way across */
+/* # 🔗 The owner's week ends on Friday, so that is where the line */
+/* #    goes. It is drawn on the LAST day of the week rather than the */
+/* #    first of the next one, because a month can begin on any day: */
+/* #    a line hung on the first day would skip whichever week got */
+/* #    cut in half by the turn of the month. Every cell in the row */
+/* #    carries it, or the line would stop at the first square */
+/* ============================================================ */
+tr.is-friday th.day,
+tr.is-friday td.cell { border-bottom: 2px solid #4b525c; }
+tr.is-friday th.day i { color: hsl(196 40% 62%); }
 
 /* ============================================================ */
 /* # 🟩 🟥  THREE ANSWERS, THREE LOOKS, ONE COLOUR EACH */
@@ -367,15 +419,47 @@ td.cell:focus-visible::after { outline: 2px solid var(--today); outline-offset: 
    account is linked, and then it is only a light saying the year is
    safe -- so it belongs where a light belongs and not across the top
    of the thing it reports on */
-/* `right`, written out, and not the logical name. The page runs right
-   to left, so `inline-end` is the LEFT edge here, and asking for the
-   end put the button in the far bottom corner on the wrong side of
-   the screen. The corner wanted is the physical right one */
-.who-btn {
+/* ============================================================ */
+/* # 🧰 📐  THE DOCK, AND THE ORDER THINGS SIT IN IT */
+/* # 🔤 CSS */
+/* # 🎯 Pins the row of buttons along the bottom, starting at the */
+/* #    physical right and running left */
+/* # 🔗 `right`, written out, and not the logical name. The page runs */
+/* #    right to left, so `inline-end` is the LEFT edge here, and */
+/* #    asking for the end once put the account button in the corner */
+/* #    opposite the one asked for. And a plain `row` is ALREADY */
+/* #    right to left on this page, so the first child lands on the */
+/* #    right of its own accord -- `row-reverse` flipped it back and */
+/* #    sent the account button across the screen a second time. The */
+/* #    WRAP is reversed though, so that when the months run out of */
+/* #    room the extra line climbs upward instead of falling off the */
+/* #    bottom edge the dock is pinned to */
+/* ============================================================ */
+.dock {
   position: fixed;
-  bottom: 10px;
+  bottom: 9px;
   right: 14px;
+  left: 14px;
   z-index: 15;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap-reverse;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 6px;
+  pointer-events: none;
+}
+
+.dock > *, .dock-months > * { pointer-events: auto; }
+
+.dock-months {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap-reverse;
+  gap: 5px;
+}
+
+.who-btn, .dock-btn, .month-btn {
   font: inherit;
   font-size: 0.78rem;
   padding: 6px 13px;
@@ -384,7 +468,15 @@ td.cell:focus-visible::after { outline: 2px solid var(--today); outline-offset: 
   background: var(--surface);
   color: var(--ink-dim);
   cursor: pointer;
+  white-space: nowrap;
 }
+
+.dock-btn:hover, .month-btn:hover { background: var(--surface-2); color: var(--ink); }
+
+.month-btn { padding: 5px 11px; font-size: 0.74rem; }
+.month-btn.is-now { border-color: var(--today); color: var(--today); }
+
+.dock-btn { color: var(--ink); }
 
 .who-btn:hover { background: var(--surface-2); color: var(--ink); }
 .who-btn.is-off { border-color: hsl(38 60% 50%); color: hsl(38 70% 72%); }
@@ -445,7 +537,7 @@ td.cell:focus-visible::after { outline: 2px solid var(--today); outline-offset: 
 /* ============================================================ */
 @media (max-width: 760px) {
   .board { padding-inline: 10px; }
-  .grid-wrap { max-height: calc(100vh - 64px); }
+  .grid-wrap { max-height: calc(100vh - 102px); }
   td.cell, th.item { width: 26px; min-width: 26px; }
   th.day { width: 84px; }
   th.day b { font-size: 0.78rem; }

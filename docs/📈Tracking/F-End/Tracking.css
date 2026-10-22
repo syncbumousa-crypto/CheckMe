@@ -1,0 +1,177 @@
+/* ============================================================ */
+/* # 🪟 🧊  THE WINDOW OVER THE GRID */
+/* # 🔤 CSS */
+/* # 🎯 A dark sheet across the whole screen with one box floating in */
+/* #    it, a head that stays put, and a body that scrolls */
+/* # 🔗 It covers the board rather than pushing it aside, because the */
+/* #    board is the page: a window that moved the grid would make */
+/* #    the reader find his place again every time he closed it. The */
+/* #    head is held out of the scroll so the title and the way out */
+/* #    never leave, however long the body runs */
+/* ============================================================ */
+#panel {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  background: rgba(14, 16, 19, 0.74);
+}
+
+.panel-box {
+  display: flex;
+  flex-direction: column;
+  width: min(760px, 100%);
+  max-height: min(680px, 100%);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-2);
+}
+
+.panel-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.panel-head .sheet-close { position: static; }
+
+.panel-body {
+  padding: 16px 18px 20px;
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #363b43 transparent;
+}
+
+.panel-body::-webkit-scrollbar { width: 12px; }
+.panel-body::-webkit-scrollbar-track { background: transparent; }
+.panel-body::-webkit-scrollbar-thumb {
+  background: #363b43;
+  border: 3px solid transparent;
+  background-clip: content-box;
+  border-radius: 999px;
+}
+
+/* ============================================================ */
+/* # 📊 🔢  THE NUMBERS THAT WERE TAKEN OFF THE GRID */
+/* # 🔤 CSS */
+/* # 🎯 The headline figure, and the two tables under it */
+/* # 🔗 This is where the day result went when it was lifted out of */
+/* #    the grid. It was never thrown away, only moved somewhere it */
+/* #    is read on purpose instead of stared at all day. Numbers are */
+/* #    held to the left and made to line up in columns, because a */
+/* #    column of figures that does not line up cannot be compared */
+/* #    at a glance, which is the only reason to put it in a column */
+/* ============================================================ */
+.big {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0 0 4px;
+}
+
+.big b { font-size: 2.1rem; font-weight: 700; color: var(--ink); }
+.big span { font-size: 0.85rem; color: var(--ink-dim); }
+
+.panel-body h3 {
+  margin: 20px 0 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--ink-dim);
+}
+
+table.stat {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+table.stat th, table.stat td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--line-soft);
+  text-align: start;
+}
+
+table.stat th {
+  font-weight: 600;
+  color: var(--ink-faint);
+  font-size: 0.76rem;
+}
+
+table.stat td.n {
+  direction: ltr;
+  unicode-bidi: isolate;
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  width: 92px;
+}
+
+table.stat td.none { color: var(--ink-faint); }
+table.stat tr.lead td { color: var(--ink); font-weight: 600; }
+
+/* The bar is the row read without reading. It is the only green on
+   this window, so nothing competes with it */
+td.meter { width: 180px; }
+
+td.meter div {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--done);
+  min-width: 2px;
+}
+
+td.meter.empty div { display: none; }
+
+.group-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-inline-end: 7px;
+  vertical-align: 1px;
+  background: hsl(var(--hue) 55% 56%);
+}
+
+/* ============================================================ */
+/* # 🚧 📝  A MONTH WINDOW WITH NOTHING IN IT YET */
+/* # 🔤 CSS */
+/* # 🎯 The look of the note that stands in a month window until its */
+/* #    contents are decided */
+/* # 🔗 It says plainly that it is waiting, and it says it in the */
+/* #    window itself. A window that opened empty would read as a */
+/* #    thing that is broken rather than a thing that is coming */
+/* ============================================================ */
+.awaiting {
+  margin: 0;
+  padding: 26px 18px;
+  border: 1px dashed var(--line);
+  border-radius: 10px;
+  text-align: center;
+  font-size: 0.88rem;
+  color: var(--ink-dim);
+}
+
+.awaiting b { display: block; margin-bottom: 6px; color: var(--ink); }
+
+@media (max-width: 760px) {
+  .panel-box { max-height: 100%; }
+  td.meter { width: 90px; }
+  table.stat th, table.stat td { padding: 6px 5px; }
+}

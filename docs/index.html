@@ -14,9 +14,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>CheckMe</title>
-<link rel="stylesheet" href="🏠shell/F-End/shell.css?v=5">
-<link rel="stylesheet" href="☁️CloudingStorage/F-End/storage.css?v=5">
-<link rel="stylesheet" href="📅DayBoard/F-End/DayBoard.css?v=5">
+<link rel="stylesheet" href="🏠shell/F-End/shell.css?v=6">
+<link rel="stylesheet" href="☁️CloudingStorage/F-End/storage.css?v=6">
+<link rel="stylesheet" href="📅DayBoard/F-End/DayBoard.css?v=6">
+<link rel="stylesheet" href="📈Tracking/F-End/Tracking.css?v=6">
 </head>
 <body>
 
@@ -40,17 +41,42 @@
 </div>
 
 <!-- ============================================================ -->
-<!-- # 🔑 📍  THE ACCOUNT, IN THE FAR CORNER -->
+<!-- # 🧰 📍  THE DOCK ALONG THE BOTTOM -->
 <!-- # 🔤 HTML -->
-<!-- # 🎯 One button, pinned to the bottom of the screen on the near -->
-<!-- #    side, which opens the account sheet below -->
-<!-- # 🔗 It is pressed once, on the day the account is linked, and -->
-<!-- #    after that it is a light that says whether the year is safe -->
-<!-- #    in Drive. A light belongs in a corner, not across the top of -->
-<!-- #    the thing it reports on. Its words are written by the board -->
-<!-- #    screen file, which is the only part that knows the answer -->
+<!-- # 🎯 The account on the far right, the performance window beside -->
+<!-- #    it, and the twelve months running off to the left -->
+<!-- # 🔗 Everything that is not the grid lives down here now. The -->
+<!-- #    order is the order they are reached in: the account is set -->
+<!-- #    once and sits nearest the thumb, the performance window is -->
+<!-- #    opened now and then, and the months are opened least. The -->
+<!-- #    month buttons are left empty for the tracking screen file to -->
+<!-- #    fill, so the twelve names live in one place and not two -->
 <!-- ============================================================ -->
-<button class="who-btn" type="button" id="who-btn"></button>
+<div class="dock">
+  <button class="who-btn" type="button" id="who-btn"></button>
+  <button class="dock-btn" type="button" id="track-btn">تتبّع أدائك</button>
+  <div class="dock-months" id="dock-months"></div>
+</div>
+
+<!-- ============================================================ -->
+<!-- # 🪟 📊  THE WINDOW THAT OPENS OVER THE GRID -->
+<!-- # 🔤 HTML -->
+<!-- # 🎯 One empty window with a title, a close button and a body, -->
+<!-- #    used by the performance button and by all twelve months -->
+<!-- # 🔗 One window and not thirteen. What changes between them is -->
+<!-- #    the title and what goes in the body, and both are written by -->
+<!-- #    the tracking screen file when the button is pressed. Thirteen -->
+<!-- #    windows in the page would be thirteen things to keep in step -->
+<!-- ============================================================ -->
+<div id="panel" hidden>
+  <div class="panel-box">
+    <div class="panel-head">
+      <h2 class="panel-title" id="panel-title"></h2>
+      <button class="sheet-close" type="button" id="panel-close" title="إغلاق">×</button>
+    </div>
+    <div class="panel-body" id="panel-body"></div>
+  </div>
+</div>
 
 <!-- ============================================================ -->
 <!-- # 🔑 🪟  THE ACCOUNT, IN A SHEET OVER THE BOARD -->
@@ -124,7 +150,7 @@
 <!-- #    the browser is serving an old copy out of its memory, and this -->
 <!-- #    one line says so at a glance instead of leaving it a guess -->
 <!-- ============================================================ -->
-<p class="build">v5</p>
+<p class="build">v6</p>
 
 <!-- ============================================================ -->
 <!-- # 📦 🔌  LIBRARIES AND SCRIPTS -->
@@ -146,12 +172,13 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://accounts.google.com/gsi/client"></script>
 <script src="https://apis.google.com/js/api.js"></script>
-<script src="🔐accounts/B-End/ProfilesSupabase.js?v=5"></script>
-<script src="☁️CloudingStorage/B-End/ProfilesClouding.js?v=5"></script>
-<script src="📅DayBoard/B-End/DayBoardStore.js?v=5"></script>
-<script src="🔐accounts/F-End/ProfilesSupabaseScreen.js?v=5"></script>
-<script src="☁️CloudingStorage/F-End/ProfilesCloudingScreen.js?v=5"></script>
-<script src="📅DayBoard/F-End/DayBoardScreen.js?v=5"></script>
+<script src="🔐accounts/B-End/ProfilesSupabase.js?v=6"></script>
+<script src="☁️CloudingStorage/B-End/ProfilesClouding.js?v=6"></script>
+<script src="📅DayBoard/B-End/DayBoardStore.js?v=6"></script>
+<script src="🔐accounts/F-End/ProfilesSupabaseScreen.js?v=6"></script>
+<script src="☁️CloudingStorage/F-End/ProfilesCloudingScreen.js?v=6"></script>
+<script src="📅DayBoard/F-End/DayBoardScreen.js?v=6"></script>
+<script src="📈Tracking/F-End/TrackingScreen.js?v=6"></script>
 
 </body>
 </html>
