@@ -12,9 +12,8 @@
 (() => {
   const DONE = '1', MISS = '0', NONE = '-';
 
-  // The labels are the owner's own words, kept as he writes them. The
-  // short one is what fits in a column head three letters wide; the
-  // long one is what the tooltip and the legend say
+  // The labels are the owner's own words, kept exactly as he writes
+  // them, and the column heads show them whole.
   // The five hues keep away from green and from red on purpose. Those
   // two now belong to the squares and mean done and not done, and a
   // group whose heading was green would be read as a column of things
@@ -30,54 +29,66 @@
   // ============================================================
   // # 🕌 🧩  THE SIXTEEN THAT ARE REALLY FIVE BY THREE
   // # 🔤 JavaScript
-  // # 🎯 Gives every item its group, the band it sits in, and the two
-  // #    labels
+  // # 🎯 Gives every item its group, the band it sits in, its name,
+  // #    and what is expected of it
   // # 🔗 The religious group is not a flat list of sixteen. It is the
   // #    five prayers crossed with three things done about each one --
   // #    in congregation, its remembrances, its extra prayers -- and
   // #    two more that belong to no prayer. The crossing is not even:
   // #    there are four `sunan`, not five, because Asr has none. That
   // #    is why the band is stored and not worked out, and it is what
-  // #    lets the head read as five short prayer letters under one
-  // #    band name instead of sixteen long ones side by side
+  // #    lets the head group five prayer names under one band name
+  // #    instead of standing sixteen long ones side by side.
+  // #    AND NOT EVERY LINE IS A DAILY DUTY.
+  // #    Three of the thirty are not daily, and measuring them as if
+  // #    they were caps their score at a number that can never be
+  // #    reached. The gym is a WEEKLY target: counted against every
+  // #    day it reads as a failure four days out of seven. And the
+  // #    coffee line carries its own exception in its own name --
+  // #    `الا سبت` -- so Saturday is not a day it can be failed on,
+  // #    and a Saturday answered `ماش` there is the rule being kept
+  // #    and not broken. `null` means daily, which is most of them
   // ============================================================
-  const row = (g, sub, label, short) => ({ g, sub, label, short });
+  const row = (g, sub, label, expect = null) => ({ g, sub, label, expect });
+
+  const PER_WEEK = n => ({ perWeek: n });
+  const EXCEPT = weekday => ({ exceptWeekday: weekday });   // 0 الأحد .. 6 السبت
 
   const ITEMS = [
-    row('morning', '', 'قيام الليل', 'قيام'),
-    row('morning', '', 'الصدقة', 'صدقة'),
-    row('morning', '', 'اذكار الصباح', 'أذكار'),
-    row('morning', '', 'الصلاة عالنبي', 'نبي'),
-    row('morning', '', 'الأمر والنهي', 'أمر'),
-    row('morning', '', 'صلاة الضحى', 'ضحى'),
+    row('morning', '', 'قيام الليل'),
+    row('morning', '', 'الصدقة'),
+    row('morning', '', 'اذكار الصباح'),
+    row('morning', '', 'الصلاة عالنبي'),
+    row('morning', '', 'الأمر والنهي'),
+    row('morning', '', 'صلاة الضحى'),
 
-    row('evening', '', 'أذكار المساء', 'مساء'),
-    row('evening', '', 'أذكار النوم', 'نوم'),
+    row('evening', '', 'أذكار المساء'),
+    row('evening', '', 'أذكار النوم'),
 
-    row('faith', 'جماعة', 'الفجر جماعة', 'ف'),
-    row('faith', 'جماعة', 'الظهر جماعة', 'ظ'),
-    row('faith', 'جماعة', 'العصر جماعة', 'ع'),
-    row('faith', 'جماعة', 'المغرب جماعة', 'م'),
-    row('faith', 'جماعة', 'العشا جماعة', 'ش'),
-    row('faith', 'اذكار', 'الفجر اذكار', 'ف'),
-    row('faith', 'اذكار', 'الظهر اذكار', 'ظ'),
-    row('faith', 'اذكار', 'العصر اذكار', 'ع'),
-    row('faith', 'اذكار', 'المغرب اذكار', 'م'),
-    row('faith', 'اذكار', 'العشا اذكار', 'ش'),
-    row('faith', 'سنن', 'الفجر سنن', 'ف'),
-    row('faith', 'سنن', 'الظهر سنن', 'ظ'),
-    row('faith', 'سنن', 'المغرب سنن', 'م'),
-    row('faith', 'سنن', 'العشاء سنن', 'ش'),
-    row('faith', 'وغيرها', 'عدم ال7', '٧'),
-    row('faith', 'وغيرها', 'لا موسيقى', '♪'),
+    row('faith', 'جماعة', 'الفجر جماعة'),
+    row('faith', 'جماعة', 'الظهر جماعة'),
+    row('faith', 'جماعة', 'العصر جماعة'),
+    row('faith', 'جماعة', 'المغرب جماعة'),
+    row('faith', 'جماعة', 'العشا جماعة'),
+    row('faith', 'اذكار', 'الفجر اذكار'),
+    row('faith', 'اذكار', 'الظهر اذكار'),
+    row('faith', 'اذكار', 'العصر اذكار'),
+    row('faith', 'اذكار', 'المغرب اذكار'),
+    row('faith', 'اذكار', 'العشا اذكار'),
+    row('faith', 'سنن', 'الفجر سنن'),
+    row('faith', 'سنن', 'الظهر سنن'),
+    row('faith', 'سنن', 'المغرب سنن'),
+    row('faith', 'سنن', 'العشاء سنن'),
+    row('faith', 'وغيرها', 'عدم ال7'),
+    row('faith', 'وغيرها', 'لا موسيقى'),
 
-    row('life', '', 'الاكل معد منزليا', 'أكل'),
-    row('life', '', 'النادي', 'نادي'),
-    row('life', '', 'عدم الغرق بالسوشال ويوتيوب', 'سوشال'),
-    row('life', '', 'عدم شرب قهوة/ الا سبت', 'قهوة'),
-    row('life', '', 'النوم المبكر قبل 9', 'نوم٩'),
+    row('life', '', 'الاكل معد منزليا'),
+    row('life', '', 'النادي', PER_WEEK(4)),
+    row('life', '', 'عدم الغرق بالسوشال ويوتيوب'),
+    row('life', '', 'عدم شرب قهوة/ الا سبت', EXCEPT(6)),
+    row('life', '', 'النوم المبكر قبل 9'),
 
-    row('study', '', 'مذاكرة ساعة', 'مذاكرة')
+    row('study', '', 'مذاكرة ساعة')
   ];
 
   const N = ITEMS.length;

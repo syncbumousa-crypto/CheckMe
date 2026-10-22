@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>حارس مقاييس الشهر</title>
+<style>
+  body { background:#23262b; color:#eef1f5; font:14px/1.6 system-ui, "Segoe UI", sans-serif; padding:22px; }
+  h1 { font-size:1.2rem; margin:0 0 4px; }
+  p.lead { margin:0 0 18px; color:#9aa3b0; max-width:70ch; }
+  table { border-collapse:collapse; font-size:0.86rem; }
+  th, td { padding:5px 10px; border-bottom:1px solid #343a41; text-align:start; }
+  th { color:#6b7380; font-weight:600; }
+  td.n { direction:ltr; unicode-bidi:isolate; text-align:end; font-variant-numeric:tabular-nums; }
+  .ok { color:#0ca30c; } .bad { color:#d03b3b; font-weight:700; }
+  #verdict { margin-top:18px; font-size:1.05rem; font-weight:700; }
+</style>
+</head>
+<body>
+
+<h1>حارس مقاييس الشهر</h1>
+<p class="lead">
+  يُغذّي المحرّكَ ستّةَ عشرَ يومًا حقيقيًّا من مارس 2026، ويقابل كلَّ رقمٍ يردّه
+  بقيمةٍ حُسبت <b>بتنفيذٍ آخرَ مستقلّ</b> (سكربت awk كُتب من الخريطة لا من المحرّك).
+  وتطابقُ تنفيذين مكتوبين على حدة هو الدليل؛ أمّا مقابلةُ المحرّك بنفسه فليست فحصًا.
+  فإن غيّر تعديلٌ رقمًا من هذه، صرخ هذا الحارس.
+</p>
+
+<table id="out"><tr><th>ما يُقاس</th><th>المنتظَر</th><th>المردود</th><th></th></tr></table>
+<p id="verdict"></p>
+
+<script src="../docs/📅DayBoard/B-End/DayBoardStore.js"></script>
+<script src="../docs/📊Metrics/B-End/MetricsEngine.js"></script>
+<script>
+// ============================================================
+//  البيانُ: ستّةَ عشرَ يومًا من شفرة صاحب اللوح، لا بيانًا مخترعًا.
+//  وبيانٌ أنظفُ ممّا يمثّله يفحص الحالةَ النظيفةَ وحدَها: هذه الأيّام
+//  فيها فراغاتٌ وسبتان وبندٌ لم يُفعل قطُّ طوالَ الشهر، وكلُّها حالاتٌ
+//  أوقعت المحرّكَ لو أُغفلت.
+// ============================================================
+const DAYS = {
+  '2026-03-16': '000000000001100000000011101000',
+  '2026-03-17': '111110001000000000100011000000',
+  '2026-03-18': '110000000000000000000011000000',
+  '2026-03-19': '010100000000000000000011000000',
+  '2026-03-20': '010000000000000000000001000000',
+  '2026-03-21': '010000001000000000100001000000',
+  '2026-03-22': '010000000000000000000000000000',
+  '2026-03-23': '010110110111001110011000000010',
+  '2026-03-24': '111110001110011100110000100010',
+  '2026-03-25': '010110110111101111011110001010',
+  '2026-03-26': '111110001110011100110010000000',
+  '2026-03-27': '010100000000001000000010000000',
+  '2026-03-28': '010100010100000000000011000010',
+  '2026-03-29': '111111101111011110111011000110',
+  '2026-03-30': '010100000011100000000010000000',
+  '2026-03-31': '010100000011100000000010000000'
+};
+
+// القيمُ المنتظَرة، من سكربت awk المستقلّ
+const WANT = [
+  ['الأيام المكتوبة', 16, r => r.written],
+  ['فرزُ البنود سليم', '0 خطأ', r => r.sortingWrong.length + ' خطأ'],
+  ['عدد الواجبات', 6, r => r.counts.fard],
+  ['عدد النواهي', 2, r => r.counts.avoid],
+  ['عدد النوافل', 16, r => r.counts.nafl],
+  ['عدد بنود الجسدية', 4, r => r.counts.body],
+  ['محبة الله', '0.397786', r => r.love.value.toFixed(6)],
+  ['الواجبات المُنجَزة من المُجابة', '34/96', r => `${r.love.parts.fard.done}/${r.love.parts.fard.answered}`],
+  ['اجتناب النواهي', '19/32', r => `${r.love.parts.avoid.done}/${r.love.parts.avoid.answered}`],
+  ['النوافل', '74/256', r => `${r.love.parts.nafl.done}/${r.love.parts.nafl.answered}`],
+  ['الصحة الجسدية', '0.127232', r => r.body.value.toFixed(6)],
+  ['القهوة: أيامٌ مُجابة (السبتان خارجها)', 14, r => r.body.items.find(i => i.label.includes('قهوة')).answered],
+  ['النادي: الهدف لا عددُ الأيام', '9.1', r => String(r.body.items.find(i => i.label === 'النادي').target)],
+  ['الصحة النفسية', '0.262509', r => r.mind.value.toFixed(6)],
+  ['المرونة: الإنجاز', '0.000000', r => r.study.achievement.toFixed(6)],
+  ['المرونة: الانقطاعات', 15, r => r.study.breaks],
+  ['الصلابة: أيامٌ ملتزمة', '0 من 16', r => `${r.grit.committed} من ${r.grit.written}`],
+  ['بندٌ خارج كل المقاييس', 'عدم الغرق بالسوشال ويوتيوب', r => r.orphans.join(' · ')]
+];
+
+const r = window.CheckMeMetrics.forMonth(2026, 3, DAYS);
+const table = document.getElementById('out');
+let bad = 0;
+
+WANT.forEach(([name, want, read]) => {
+  let got;
+  try { got = read(r); } catch (e) { got = 'ERROR: ' + e.message; }
+  const ok = String(got) === String(want);
+  if (!ok) bad++;
+  table.insertAdjacentHTML('beforeend',
+    `<tr><td>${name}</td><td class="n">${want}</td><td class="n">${got}</td>` +
+    `<td class="${ok ? 'ok' : 'bad'}">${ok ? 'مطابق' : 'اختلف'}</td></tr>`);
+});
+
+document.getElementById('verdict').innerHTML = bad
+  ? `<span class="bad">فشل: ${bad} من ${WANT.length} لم تطابق التنفيذَ المستقلّ.</span>`
+  : `<span class="ok">ALL PASS — ${WANT.length} قيمةً طابقت التنفيذَ المستقلّ.</span>`;
+</script>
+</body>
+</html>
