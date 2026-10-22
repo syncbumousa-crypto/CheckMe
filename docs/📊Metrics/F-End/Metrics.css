@@ -1,0 +1,255 @@
+/* ============================================================ */
+/* # 🖥️ 📐  FIVE CARDS, ONE SCREENFUL, NO SCROLLING */
+/* # 🔤 CSS */
+/* # 🎯 Lays the five measures out as a fixed grid the height of the */
+/* #    window, so the whole month is taken in at once */
+/* # 🔗 The height is the window's, not the content's, and the rows */
+/* #    share it. That inverts the usual arrangement: instead of the */
+/* #    cards deciding how tall the page is, the page decides how */
+/* #    tall the cards are and every chart inside shrinks to fit. */
+/* #    The point of a dashboard is the COMPARISON, and a comparison */
+/* #    that needs scrolling between its halves is not one. Below a */
+/* #    phone width it gives up and scrolls, because three columns of */
+/* #    anything on a narrow screen is worse than a scroll */
+/* ============================================================ */
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: auto 1fr 1fr;
+  gap: 10px;
+  height: calc(100vh - 54px);
+  padding: 10px 14px 0;
+  box-sizing: border-box;
+  max-width: 1600px;
+  margin-inline: auto;
+}
+
+.mhead {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.mhead h2 { margin: 0; font-size: 1.15rem; font-weight: 600; letter-spacing: 0.01em; }
+.mhead .sub { margin: 0; font-size: 0.72rem; color: var(--ink-faint); }
+
+/* ============================================================ */
+/* # 🃏 🤍  THE CARD, WITH ALMOST NOTHING ON IT */
+/* # 🔤 CSS */
+/* # 🎯 A name, a figure, a chart, and the few rows under it */
+/* # 🔗 Stripped on purpose. Every card used to carry a subtitle */
+/* #    naming its parts and a paragraph of small print explaining */
+/* #    itself, and between them they pushed the charts off the */
+/* #    screen -- the reader was given prose where he asked for a */
+/* #    shape. What the prose said is not lost: it moved into the */
+/* #    `title` of the thing it was about, where it is one hover */
+/* #    away and nought pixels tall. `min-height: 0` is what lets a */
+/* #    grid row actually shrink its contents instead of overflowing */
+/* ============================================================ */
+.mcard {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 0;
+  padding: 12px 14px 12px;
+  border: 1px solid var(--line-soft);
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+.mcard.wide { grid-column: span 2; }
+
+.mcard h3 {
+  margin: 0;
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--c);
+}
+
+.hero { display: flex; align-items: baseline; gap: 8px; }
+.hero b { font-size: 1.9rem; font-weight: 600; line-height: 1; color: var(--ink); }
+.hero .delta { font-size: 0.7rem; color: var(--ink-faint); }
+.hero .delta.up { color: #0ca30c; }
+.hero .delta.down { color: #d03b3b; }
+.hero .none { font-size: 1.5rem; color: var(--ink-faint); }
+
+/* ============================================================ */
+/* # 📈 📏  THE MARKS, AND THE AXIS THAT LINES UP */
+/* # 🔤 CSS */
+/* # 🎯 Thin strokes, a recessive grid, and axis figures set left to */
+/* #    right and ended on one edge */
+/* # 🔗 The axis numbers were ragged and sat on top of the first */
+/* #    day's label: left to right digits dropped into a right to */
+/* #    left page anchor where the text happens to end, so `0%`, */
+/* #    `50%` and `100%` each started somewhere different. Anchoring */
+/* #    them at the END against a fixed edge is what puts their */
+/* #    right sides in one line -- and the plot was pulled in to */
+/* #    leave them room of their own */
+/* ============================================================ */
+.plot { flex: 1; min-height: 0; position: relative; }
+.plot svg { display: block; width: 100%; height: 100%; overflow: visible; }
+
+.grid-line { stroke: var(--line-soft); stroke-width: 1; }
+.floor-line { stroke: var(--ink-faint); stroke-width: 1; stroke-dasharray: 3 4; opacity: 0.55; }
+
+.axis-text {
+  fill: var(--ink-faint);
+  font-size: 9px;
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+.series { fill: none; stroke: var(--c); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.cross { stroke: var(--ink-dim); stroke-width: 1; }
+.dot { fill: var(--c); stroke: var(--surface); stroke-width: 2; }
+
+.cell-done { fill: #2f9e63; }
+.cell-miss { fill: #b8433f; }
+.cell-none { fill: var(--cell-none); }
+.cell-on { fill: var(--c); }
+.cell-off { fill: var(--cell-none); }
+
+/* ============================================================ */
+/* # ▁ 🔢  THE ROWS UNDER THE CHART */
+/* # 🔤 CSS */
+/* # 🎯 A name, a slim track and a share, on one line each */
+/* # 🔗 The count each share came from used to sit on a second line */
+/* #    below it, which doubled the height of every block of these */
+/* #    for a figure that is read once a month. It lives in the row's */
+/* #    `title` now. The share itself is set left to right and held */
+/* #    to one edge, for the same reason the axis is */
+/* ============================================================ */
+.meters { display: flex; flex-direction: column; gap: 5px; }
+
+.meter-row {
+  display: grid;
+  grid-template-columns: 1fr 52px 34px;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.72rem;
+  color: var(--ink-dim);
+}
+
+.meter-row .track {
+  height: 5px;
+  border-radius: 999px;
+  background: var(--cell-none);
+  overflow: hidden;
+}
+
+/* `display: block`, which it did NOT have, and the bar was invisible.
+   The track above it is a span too and came out block anyway, because
+   a grid child is blockified whether it asks to be or not -- so the
+   track looked right while the fill inside it, which is nobody's grid
+   child, stayed inline and ignored both its width and its height */
+.meter-row .fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--c);
+}
+
+.meter-row .fill.weak { background: var(--ink-faint); }
+
+.meter-row .num {
+  direction: ltr;
+  unicode-bidi: isolate;
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.meter-row .name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.pair { display: flex; gap: 16px; }
+.pair div { font-size: 0.68rem; color: var(--ink-faint); }
+.pair b {
+  display: block;
+  font-size: 0.98rem;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  direction: ltr;
+  unicode-bidi: isolate;
+  text-align: start;
+}
+
+/* ============================================================ */
+/* # 💬 🫧  THE TOOLTIP, WHICH NOW CARRIES THE PROSE */
+/* # 🔤 CSS */
+/* # 🎯 One floating label shared by every chart on the screen */
+/* # 🔗 It grew a job when the small print was taken off the cards: */
+/* #    the counts behind each share, and the note that the gym is */
+/* #    not in the daily dots, are all one hover away. Nothing was */
+/* #    deleted, it was moved to where it costs no height */
+/* ============================================================ */
+#mtip {
+  position: fixed;
+  z-index: 40;
+  pointer-events: none;
+  padding: 5px 9px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--surface-2);
+  color: var(--ink);
+  font-size: 0.72rem;
+  white-space: nowrap;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+}
+
+#mtip .n { direction: ltr; unicode-bidi: isolate; display: inline-block; }
+
+.empty-month {
+  grid-column: 1 / -1;
+  grid-row: 2 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed var(--line-soft);
+  border-radius: 16px;
+  color: var(--ink-faint);
+  font-size: 0.86rem;
+}
+
+/* ============================================================ */
+/* # 📱 🤏  WHERE ONE SCREENFUL STOPS BEING POSSIBLE */
+/* # 🔤 CSS */
+/* # 🎯 Below a phone width the grid gives up its fixed height and */
+/* #    the page scrolls */
+/* # 🔗 Five cards cannot share four hundred pixels and stay */
+/* #    readable. Insisting on the one screen there would deliver */
+/* #    five charts too small to read, which is the whole point lost */
+/* #    for the sake of the rule that was meant to serve it */
+/* ============================================================ */
+@media (max-width: 900px) {
+  .metrics {
+    grid-template-columns: 1fr;
+    grid-template-rows: none;
+    height: auto;
+    padding: 10px 10px 56px;
+  }
+  .mcard.wide { grid-column: span 1; }
+  .plot { height: 110px; flex: none; }
+}
+
+/* شريطُ الأيام ليس رسمًا يتمدّد: ارتفاعُه ثابتٌ صغير، وإلا
+   ابتلع نصيبَ البطاقةِ كلَّه حين جُعل الرسمُ يملأ ما بقي */
+.plot.strip { flex: none; height: 20px; }
+
+/* ============================================================ */
+/* # ↕️ 🧲  THE SLACK GOES BETWEEN, NOT UNDERNEATH */
+/* # 🔤 CSS */
+/* # 🎯 Pushes the last block of a card to its floor, so the room */
+/* #    left over is spread inside the card instead of pooling at */
+/* #    the bottom of it */
+/* # 🔗 Two of the five cards carry a day strip rather than a */
+/* #    chart, and a strip is twenty pixels tall whatever the card */
+/* #    is. They came out with a hand of dead space under them while */
+/* #    their neighbours were full, which reads as two cards that */
+/* #    failed to load. On the three cards whose chart already */
+/* #    stretches there is no slack to move, so the rule costs them */
+/* #    nothing */
+/* ============================================================ */
+.mcard > *:last-child { margin-block-start: auto; }
+.plot.strip { flex: none; height: 26px; }
