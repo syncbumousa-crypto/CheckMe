@@ -196,10 +196,24 @@
     let r3 = '<tr>';
 
     layout.forEach(g => {
-      r1 += `<th class="group g-${g.id} group-start" colspan="${g.items.length}">${esc(g.label)}</th>`;
+      // A group with no bands under it reaches down through both head
+      // rows instead of leaving an empty strip beneath its name. The
+      // strip was the real complaint: the name was centred in its own
+      // row perfectly well, and sat at the top of the block the eye
+      // reads as belonging to it
+      const banded = g.bands.some(b => b.sub);
+      r1 += `<th class="group g-${g.id} group-start" colspan="${g.items.length}"` +
+        `${banded ? '' : ' rowspan="2"'}>${esc(g.label)}</th>`;
+
       g.bands.forEach(b => {
-        r2 += `<th class="band g-${g.id}${edgeOf(b.items[0].i)}" colspan="${b.items.length}">` +
-          `${esc(b.sub)}</th>`;
+        // Only the BAND cell is skipped when a group has none. Its
+        // items still need their own heads in the third row, and
+        // skipping the whole turn once dropped fourteen of the thirty
+        // columns out of the head while their squares stayed below
+        if (banded) {
+          r2 += `<th class="band g-${g.id}${edgeOf(b.items[0].i)}" colspan="${b.items.length}">` +
+            `${esc(b.sub)}</th>`;
+        }
         b.items.forEach(it => {
           r3 += `<th class="item g-${g.id}${edgeOf(it.i)}"><span>${esc(it.label)}</span></th>`;
         });
